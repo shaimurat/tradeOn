@@ -12,7 +12,7 @@ func ToDomainUser(user generated2.User) models.User {
 		Email:        user.Email,
 		Username:     user.Username,
 		PasswordHash: pgTextToStringPtr(user.PasswordHash),
-		Avatar:       pgTextToStringPtr(user.Avatar),
+		AvatarUrl:    pgTextToStringPtr(user.AvatarUrl),
 		AuthMethod:   models.AuthMethod(user.AuthMethod),
 		CreatedAt:    pgTimestamptzToTime(user.CreatedAt),
 		UpdatedAt:    pgTimestamptzToTime(user.UpdatedAt),
@@ -37,7 +37,7 @@ func ToCreateUserParams(user models.User) generated2.CreateUserParams {
 		Email:        user.Email,
 		Username:     user.Username,
 		PasswordHash: stringPtrToPgText(user.PasswordHash),
-		Avatar:       stringPtrToPgText(user.Avatar),
+		AvatarUrl:    stringPtrToPgText(user.AvatarUrl),
 		AuthMethod:   string(user.AuthMethod),
 		Status:       string(user.Status),
 	}
@@ -50,7 +50,7 @@ func ToPatchUserParams(id string, params models.PatchUserParams) generated2.Patc
 		Email:        stringPtrToPgText(params.Email),
 		Username:     stringPtrToPgText(params.Username),
 		PasswordHash: stringPtrToPgText(params.PasswordHash),
-		Avatar:       stringPtrToPgText(params.Avatar),
+		AvatarUrl:    stringPtrToPgText(params.AvatarUrl),
 		Status:       stringPtrToPgText((*string)(params.Status)),
 	}
 }

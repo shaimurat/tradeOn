@@ -1,0 +1,214 @@
+import {
+  Avatar,
+  Badge,
+  Box,
+  IconButton,
+  Menu,
+  MenuItem,
+  Stack,
+  Toolbar,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import ViewSidebarOutlinedIcon from '@mui/icons-material/ViewSidebarOutlined';
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
+import LogoutIcon from '@mui/icons-material/Logout';
+import SettingsIcon from '@mui/icons-material/Settings';
+import PersonIcon from '@mui/icons-material/Person';
+import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+import { useAuthStore } from '../../features/auth/model/authStore';
+import { authApi } from '../../features/auth/api/authApi';
+import { navigationItems } from '../config/navigation';
+
+type HeaderProps = {
+  onOpenSidebar: () => void;
+};
+
+export function Header({ onOpenSidebar }: HeaderProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const user = useAuthStore((state) => state.user);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const activeItem = navigationItems.find((item) => {
+    return (
+      location.pathname === item.path ||
+      location.pathname.startsWith(`${item.path}/`)
+    );
+  });
+
+  const title = activeItem?.label ?? 'Dashboard';
+
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+    } finally {
+      clearAuth();
+      navigate('/login');
+    }
+  };
+
+  return (
+    <Box
+      component="header"
+      sx={{
+        position: 'sticky',
+        top: 0,
+        zIndex: (theme) => theme.zIndex.appBar,
+        bgcolor: 'background.paper',
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
+      <Toolbar
+        sx={{
+          minHeight: 56,
+          px: {
+            xs: 1.5,
+            md: 2.5,
+          },
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: 2,
+        }}
+      >
+        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+          <IconButton
+            onClick={onOpenSidebar}
+            sx={{
+              display: {
+                xs: 'inline-flex',
+                md: 'none',
+              },
+            }}
+          >
+            <MenuIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+
+          <IconButton
+            sx={{
+              display: {
+                xs: 'none',
+                md: 'inline-flex',
+              },
+            }}
+          >
+            <ViewSidebarOutlinedIcon sx={{ fontSize: 19 }} />
+          </IconButton>
+
+          <Typography
+            variant="body1"
+            sx={{
+              fontWeight: 700,
+              color: 'text.primary',
+            }}
+          >
+            {title}
+          </Typography>
+        </Stack>
+
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+          <Tooltip title="Notifications">
+            <IconButton>
+              <Badge
+                variant="dot"
+                color="primary"
+                overlap="circular"
+                anchorOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+              >
+                <NotificationsNoneIcon sx={{ fontSize: 20 }} />
+              </Badge>
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Account">
+            <IconButton
+              onClick={(event) => setAnchorEl(event.currentTarget)}
+              sx={{ p: 0.25 }}
+            >
+              <Avatar
+                src={user?.avatar_url ?? undefined}
+                sx={{
+                  width: 28,
+                  height: 28,
+                  bgcolor: 'secondary.main',
+                  color: 'text.primary',
+                  fontSize: 11,
+                  fontWeight: 700,
+                }}
+              >
+                {user?.username?.[0]?.toUpperCase() ?? 'JD'}
+              </Avatar>
+            </IconButton>
+          </Tooltip>
+
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={() => setAnchorEl(null)}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            slotProps={{
+              paper: {
+                sx: {
+                  mt: 1,
+                  minWidth: 220,
+                },
+              },
+            }}
+          >
+            <Box sx={{ px: 2, py: 1.5 }}>
+              <Typography sx={{ fontWeight: 700 }}>
+                {user?.username ?? 'John Doe'}
+              </Typography>
+
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                {user?.email ?? 'seller@tradeon.kz'}
+              </Typography>
+            </Box>
+
+            <MenuItem
+              onClick={() => {
+                setAnchorEl(null);
+                navigate('/profile');
+              }}
+            >
+              <PersonIcon fontSize="small" sx={{ mr: 1.5 }} />
+              Profile
+            </MenuItem>
+
+            <MenuItem
+              onClick={() => {
+                setAnchorEl(null);
+                navigate('/settings');
+              }}
+            >
+              <SettingsIcon fontSize="small" sx={{ mr: 1.5 }} />
+              Settings
+            </MenuItem>
+
+            <MenuItem onClick={handleLogout}>
+              <LogoutIcon fontSize="small" sx={{ mr: 1.5 }} />
+              Logout
+            </MenuItem>
+          </Menu>
+        </Stack>
+      </Toolbar>
+    </Box>
+  );
+}

@@ -5,8 +5,163 @@
 package generated
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type AttributeType string
+
+const (
+	AttributeTypeText   AttributeType = "text"
+	AttributeTypeNumber AttributeType = "number"
+	AttributeTypeBool   AttributeType = "bool"
+	AttributeTypeSelect AttributeType = "select"
+)
+
+func (e *AttributeType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AttributeType(s)
+	case string:
+		*e = AttributeType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AttributeType: %T", src)
+	}
+	return nil
+}
+
+type NullAttributeType struct {
+	AttributeType AttributeType `json:"attribute_type"`
+	Valid         bool          `json:"valid"` // Valid is true if AttributeType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAttributeType) Scan(value interface{}) error {
+	if value == nil {
+		ns.AttributeType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AttributeType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAttributeType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AttributeType), nil
+}
+
+type ProductStatus string
+
+const (
+	ProductStatusDraft      ProductStatus = "draft"
+	ProductStatusActive     ProductStatus = "active"
+	ProductStatusInactive   ProductStatus = "inactive"
+	ProductStatusModeration ProductStatus = "moderation"
+	ProductStatusBlocked    ProductStatus = "blocked"
+)
+
+func (e *ProductStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ProductStatus(s)
+	case string:
+		*e = ProductStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ProductStatus: %T", src)
+	}
+	return nil
+}
+
+type NullProductStatus struct {
+	ProductStatus ProductStatus `json:"product_status"`
+	Valid         bool          `json:"valid"` // Valid is true if ProductStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullProductStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.ProductStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ProductStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullProductStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ProductStatus), nil
+}
+
+type Product struct {
+	ID           pgtype.UUID        `json:"id"`
+	StoreID      pgtype.UUID        `json:"store_id"`
+	CategoryID   pgtype.UUID        `json:"category_id"`
+	Name         string             `json:"name"`
+	Slug         string             `json:"slug"`
+	Description  pgtype.Text        `json:"description"`
+	Price        int64              `json:"price"`
+	OldPrice     pgtype.Int8        `json:"old_price"`
+	Sku          pgtype.Text        `json:"sku"`
+	Status       ProductStatus      `json:"status"`
+	MainImageUrl pgtype.Text        `json:"main_image_url"`
+	SupplierUrl  pgtype.Text        `json:"supplier_url"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
+type ProductAttribute struct {
+	ID         pgtype.UUID        `json:"id"`
+	StoreID    pgtype.UUID        `json:"store_id"`
+	CategoryID pgtype.UUID        `json:"category_id"`
+	Name       string             `json:"name"`
+	Code       string             `json:"code"`
+	IsRequired bool               `json:"is_required"`
+	IsFilter   bool               `json:"is_filter"`
+	Type       AttributeType      `json:"type"`
+	Unit       pgtype.Text        `json:"unit"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+type ProductAttributeOption struct {
+	ID                 pgtype.UUID        `json:"id"`
+	ProductAttributeID pgtype.UUID        `json:"product_attribute_id"`
+	Value              string             `json:"value"`
+	Position           int32              `json:"position"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+}
+
+type ProductAttributeValue struct {
+	ID                 pgtype.UUID        `json:"id"`
+	ProductID          pgtype.UUID        `json:"product_id"`
+	ProductAttributeID pgtype.UUID        `json:"product_attribute_id"`
+	ValueText          pgtype.Text        `json:"value_text"`
+	ValueNumber        pgtype.Float8      `json:"value_number"`
+	ValueBool          pgtype.Bool        `json:"value_bool"`
+	OptionID           pgtype.UUID        `json:"option_id"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+}
+
+type ProductCategory struct {
+	ID          pgtype.UUID        `json:"id"`
+	StoreID     pgtype.UUID        `json:"store_id"`
+	Name        string             `json:"name"`
+	Description pgtype.Text        `json:"description"`
+	ParentID    pgtype.UUID        `json:"parent_id"`
+	IsActive    bool               `json:"is_active"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
 
 type RefreshToken struct {
 	ID               pgtype.UUID        `json:"id"`
@@ -20,13 +175,29 @@ type RefreshToken struct {
 	ExpiresAt        pgtype.Timestamptz `json:"expires_at"`
 }
 
+type Store struct {
+	ID          pgtype.UUID        `json:"id"`
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	Slug        string             `json:"slug"`
+	SellerID    pgtype.UUID        `json:"seller_id"`
+	LogoUrl     pgtype.Text        `json:"logo_url"`
+	BannerUrl   pgtype.Text        `json:"banner_url"`
+	Phone       pgtype.Text        `json:"phone"`
+	Email       pgtype.Text        `json:"email"`
+	Address     pgtype.Text        `json:"address"`
+	Status      string             `json:"status"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
 type User struct {
 	ID           pgtype.UUID        `json:"id"`
 	Role         string             `json:"role"`
 	Email        string             `json:"email"`
 	Username     string             `json:"username"`
 	PasswordHash pgtype.Text        `json:"password_hash"`
-	Avatar       pgtype.Text        `json:"avatar"`
+	AvatarUrl    pgtype.Text        `json:"avatar_url"`
 	AuthMethod   string             `json:"auth_method"`
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`

@@ -17,72 +17,80 @@ func NewUserRepository(q *sqldb.Queries) *UserRepository {
 	}
 }
 
-func (u *UserRepository) Create(ctx context.Context, user models.User) (*models.User, error) {
-	pgUser, err := u.q.CreateUser(ctx, mappers.ToCreateUserParams(user))
+func (r *UserRepository) Create(ctx context.Context, user models.User) (*models.User, error) {
+	pgUser, err := r.q.CreateUser(ctx, mappers.ToCreateUserParams(user))
 	if err != nil {
-		return nil, mappers.MapDBError(err)
+		return nil, err
 	}
 	user = mappers.ToDomainUser(pgUser)
 	return &user, nil
 }
 
-func (u *UserRepository) Update(ctx context.Context, id string, params models.PatchUserParams) (*models.User, error) {
-	_, err := u.q.PatchUser(ctx, mappers.ToPatchUserParams(id, params))
+func (r *UserRepository) Update(ctx context.Context, id string, params models.PatchUserParams) (*models.User, error) {
+	_, err := r.q.PatchUser(ctx, mappers.ToPatchUserParams(id, params))
 	if err != nil {
-		return nil, mappers.MapDBError(err)
+		return nil, err
 	}
-	pgUser, err := u.q.GetUserByID(ctx, mappers.StringToUUID(id))
+	pgUser, err := r.q.GetUserByID(ctx, mappers.StringToUUID(id))
 	if err != nil {
-		return nil, mappers.MapDBError(err)
+		return nil, err
 	}
 	user := mappers.ToDomainUser(pgUser)
 	return &user, nil
 }
 
-func (u *UserRepository) Delete(ctx context.Context, id string) error {
+func (r *UserRepository) Delete(ctx context.Context, id string) error {
 	uid := mappers.StringToUUID(id)
-	err := u.q.DeleteUser(ctx, uid)
+	err := r.q.DeleteUser(ctx, uid)
 	if err != nil {
-		return mappers.MapDBError(err)
+		return err
 	}
 	return nil
 }
 
-func (u *UserRepository) Get(ctx context.Context, id string) (*models.User, error) {
+func (r *UserRepository) Get(ctx context.Context, id string) (*models.User, error) {
 	uid := mappers.StringToUUID(id)
-	pgUser, err := u.q.GetUserByID(ctx, uid)
+	pgUser, err := r.q.GetUserByID(ctx, uid)
 	if err != nil {
-		return nil, mappers.MapDBError(err)
+		return nil, err
 	}
 	user := mappers.ToDomainUser(pgUser)
 	return &user, nil
 }
 
-func (u *UserRepository) GetList(ctx context.Context, params models.ListUserParams) ([]models.User, error) {
-	pgUsers, err := u.q.GetUsersList(ctx, mappers.ToGetUsersListParams(params))
+func (r *UserRepository) GetList(ctx context.Context, params models.ListUserParams) ([]models.User, error) {
+	pgUsers, err := r.q.GetUsersList(ctx, mappers.ToGetUsersListParams(params))
 	if err != nil {
-		return nil, mappers.MapDBError(err)
+		return nil, err
 	}
 	users := mappers.ToDomainUsers(pgUsers)
 	return users, nil
 }
 
-func (u *UserRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
-	exists, err := u.q.ExistsUserByEmail(ctx, email)
+func (r *UserRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
+	exists, err := r.q.ExistsUserByEmail(ctx, email)
 	if err != nil {
-		return false, mappers.MapDBError(err)
+		return false, err
 	}
 
 	return exists, nil
 }
 
-func (u *UserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
-	pgUser, err := u.q.GetUserByEmail(ctx, email)
+func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+	pgUser, err := r.q.GetUserByEmail(ctx, email)
 	if err != nil {
-		return nil, mappers.MapDBError(err)
+		return nil, err
 	}
 
 	user := mappers.ToDomainUser(pgUser)
 
 	return &user, nil
+}
+
+func (r *UserRepository) UpdateLastLogin(ctx context.Context, email string) error {
+	err := r.q.UpdateUserLastLoginByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+	return nil
 }

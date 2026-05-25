@@ -22,7 +22,7 @@ type Role string
 const (
 	RoleAdmin  Role = "admin"
 	RoleSeller Role = "seller"
-	RoleUser   Role = "user"
+	RoleClient Role = "client"
 )
 
 type User struct {
@@ -31,7 +31,7 @@ type User struct {
 	Email        string
 	Username     string
 	PasswordHash *string
-	Avatar       *string
+	AvatarUrl    *string
 	AuthMethod   AuthMethod
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
@@ -49,6 +49,6 @@ type PatchUserParams struct {
 	Email        *string
 	Username     *string
 	PasswordHash *string
-	Avatar       *string
+	AvatarUrl    *string
 	Status       *UserStatus
 }

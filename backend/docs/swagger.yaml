@@ -1,0 +1,1620 @@
+basePath: /api
+definitions:
+  auth.AuthResult:
+    properties:
+      access_token:
+        type: string
+      user:
+        $ref: '#/definitions/user.UserDTO'
+    type: object
+  auth.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  auth.loginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.AuthMethod:
+    enum:
+    - email
+    - google
+    type: string
+    x-enum-varnames:
+    - AuthMethodEmail
+    - AuthMethodGoogle
+  models.ProductStatus:
+    enum:
+    - draft
+    - active
+    - inactive
+    - blocked
+    type: string
+    x-enum-varnames:
+    - ProductStatusDraft
+    - ProductStatusActive
+    - ProductStatusInactive
+    - ProductStatusBlocked
+  models.Role:
+    enum:
+    - admin
+    - seller
+    - client
+    type: string
+    x-enum-varnames:
+    - RoleAdmin
+    - RoleSeller
+    - RoleClient
+  models.StoreStatus:
+    enum:
+    - active
+    - inactive
+    - blocked
+    - moderation
+    type: string
+    x-enum-varnames:
+    - StoreStatusActive
+    - StoreStatusInactive
+    - StoreStatusBlocked
+    - StoreStatusModeration
+  models.UserStatus:
+    enum:
+    - blocked
+    - active
+    - inactive
+    type: string
+    x-enum-varnames:
+    - UserStatusBlocked
+    - UserStatusActive
+    - UserStatusInactive
+  product.CreateProductBodyRequest:
+    properties:
+      category_id:
+        type: string
+      description:
+        type: string
+      main_image_url:
+        type: string
+      name:
+        type: string
+      old_price:
+        type: integer
+      price:
+        minimum: 1
+        type: integer
+      sku:
+        type: string
+      slug:
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/models.ProductStatus'
+        enum:
+        - draft
+        - active
+        - inactive
+        - blocked
+      store_id:
+        type: string
+      supplier_url:
+        type: string
+    required:
+    - name
+    - price
+    - slug
+    - status
+    - store_id
+    type: object
+  product.CreateProductCategoryBodyRequest:
+    properties:
+      description:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      parent_id:
+        type: string
+    required:
+    - name
+    type: object
+  product.CreateProductRequest:
+    properties:
+      product:
+        $ref: '#/definitions/product.CreateProductBodyRequest'
+      product_category:
+        $ref: '#/definitions/product.CreateProductCategoryBodyRequest'
+    required:
+    - product
+    type: object
+  product.PatchProductRequest:
+    properties:
+      category_id:
+        type: string
+      description:
+        type: string
+      main_image_url:
+        type: string
+      name:
+        type: string
+      old_price:
+        type: integer
+      price:
+        type: integer
+      sku:
+        type: string
+      slug:
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/models.ProductStatus'
+        enum:
+        - draft
+        - active
+        - inactive
+        - blocked
+      supplier_url:
+        type: string
+    type: object
+  product.ProductDTO:
+    properties:
+      category_id:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      main_image_url:
+        type: string
+      name:
+        type: string
+      old_price:
+        type: integer
+      price:
+        type: integer
+      sku:
+        type: string
+      slug:
+        type: string
+      status:
+        $ref: '#/definitions/models.ProductStatus'
+      store_id:
+        type: string
+      supplier_url:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  product.ProductResponse:
+    properties:
+      product:
+        $ref: '#/definitions/product.ProductDTO'
+    type: object
+  product.ProductsListResponse:
+    properties:
+      count:
+        type: integer
+      products:
+        items:
+          $ref: '#/definitions/product.ProductDTO'
+        type: array
+    type: object
+  response.ErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/response.errorDetail'
+    type: object
+  response.errorDetail:
+    properties:
+      code:
+        type: string
+      fields:
+        additionalProperties:
+          type: string
+        type: object
+      message:
+        type: string
+    type: object
+  store.AdminCreateStoreRequest:
+    properties:
+      address:
+        maxLength: 500
+        type: string
+      banner_url:
+        maxLength: 1000
+        type: string
+      description:
+        maxLength: 2000
+        minLength: 10
+        type: string
+      email:
+        maxLength: 255
+        type: string
+      logo_url:
+        maxLength: 1000
+        type: string
+      name:
+        maxLength: 150
+        minLength: 2
+        type: string
+      phone:
+        maxLength: 30
+        type: string
+      seller_id:
+        type: string
+      slug:
+        maxLength: 100
+        minLength: 3
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/models.StoreStatus'
+        enum:
+        - active
+        - inactive
+        - blocked
+        - moderation
+    required:
+    - description
+    - name
+    - seller_id
+    - slug
+    - status
+    type: object
+  store.AdminPatchStoreRequest:
+    properties:
+      address:
+        maxLength: 500
+        type: string
+      banner_url:
+        maxLength: 1000
+        type: string
+      description:
+        maxLength: 2000
+        minLength: 10
+        type: string
+      email:
+        maxLength: 255
+        type: string
+      logo_url:
+        maxLength: 1000
+        type: string
+      name:
+        maxLength: 150
+        minLength: 2
+        type: string
+      phone:
+        maxLength: 30
+        type: string
+      slug:
+        maxLength: 100
+        minLength: 3
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/models.StoreStatus'
+        enum:
+        - active
+        - inactive
+        - blocked
+        - moderation
+    type: object
+  store.ListStoreResponse:
+    properties:
+      count:
+        type: integer
+      stores:
+        items:
+          $ref: '#/definitions/store.StoreDTO'
+        type: array
+    type: object
+  store.SellerCreateStoreRequest:
+    properties:
+      address:
+        maxLength: 500
+        type: string
+      banner_url:
+        maxLength: 1000
+        type: string
+      description:
+        maxLength: 2000
+        minLength: 10
+        type: string
+      email:
+        maxLength: 255
+        type: string
+      logo_url:
+        maxLength: 1000
+        type: string
+      name:
+        maxLength: 150
+        minLength: 2
+        type: string
+      phone:
+        maxLength: 30
+        type: string
+      slug:
+        maxLength: 100
+        minLength: 3
+        type: string
+    required:
+    - description
+    - name
+    - slug
+    type: object
+  store.SellerPatchStoreRequest:
+    properties:
+      address:
+        maxLength: 500
+        type: string
+      banner_url:
+        maxLength: 1000
+        type: string
+      description:
+        maxLength: 2000
+        minLength: 10
+        type: string
+      email:
+        maxLength: 255
+        type: string
+      logo_url:
+        maxLength: 1000
+        type: string
+      name:
+        maxLength: 150
+        minLength: 2
+        type: string
+      phone:
+        maxLength: 30
+        type: string
+      slug:
+        maxLength: 100
+        minLength: 3
+        type: string
+    type: object
+  store.StoreDTO:
+    properties:
+      address:
+        type: string
+      banner_url:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      logo_url:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      seller_id:
+        type: string
+      slug:
+        type: string
+      status:
+        $ref: '#/definitions/models.StoreStatus'
+      updated_at:
+        type: string
+    type: object
+  store.StoreResponse:
+    properties:
+      store:
+        $ref: '#/definitions/store.StoreDTO'
+    type: object
+  user.CreateUserRequest:
+    properties:
+      avatar_url:
+        maxLength: 1000
+        type: string
+      email:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 72
+        minLength: 8
+        type: string
+      role:
+        allOf:
+        - $ref: '#/definitions/models.Role'
+        enum:
+        - admin
+        - seller
+        - customer
+      username:
+        maxLength: 100
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - role
+    - username
+    type: object
+  user.ListUserResponse:
+    properties:
+      count:
+        type: integer
+      users:
+        items:
+          $ref: '#/definitions/user.UserDTO'
+        type: array
+    type: object
+  user.PatchUserRequest:
+    properties:
+      avatar_url:
+        maxLength: 1000
+        type: string
+      email:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 72
+        minLength: 8
+        type: string
+      role:
+        allOf:
+        - $ref: '#/definitions/models.Role'
+        enum:
+        - admin
+        - seller
+        - customer
+      status:
+        allOf:
+        - $ref: '#/definitions/models.UserStatus'
+        enum:
+        - active
+        - inactive
+        - blocked
+      username:
+        maxLength: 100
+        minLength: 3
+        type: string
+    type: object
+  user.UserDTO:
+    properties:
+      auth_method:
+        $ref: '#/definitions/models.AuthMethod'
+      avatar_url:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      last_login:
+        type: string
+      role:
+        $ref: '#/definitions/models.Role'
+      status:
+        $ref: '#/definitions/models.UserStatus'
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  user.UserResponse:
+    properties:
+      user:
+        $ref: '#/definitions/user.UserDTO'
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Api server for TradeOn
+  title: TradeOn Backend
+  version: "0.2"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates user by email and password and returns access and
+        refresh tokens
+      parameters:
+      - description: Login request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.AuthResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Login user
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Invalidates the provided refresh token
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Logout user
+      tags:
+      - Auth
+  /auth/me:
+    get:
+      description: Returns the authenticated user's profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.UserResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: GetByID current user
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Generates a new access token and refresh token using a valid refresh
+        token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.AuthResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Refresh tokens
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account and returns access and refresh tokens
+      parameters:
+      - description: Register request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.AuthResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Register user
+      tags:
+      - Auth
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: Returns public/global list of products with optional filters
+      parameters:
+      - description: Store ID
+        in: query
+        name: store_id
+        type: string
+      - description: Search by product name, slug, description or SKU
+        in: query
+        name: search
+        type: string
+      - description: Category ID
+        in: query
+        name: category_id
+        type: string
+      - description: Minimum price
+        in: query
+        name: price_from
+        type: integer
+      - description: Maximum price
+        in: query
+        name: price_to
+        type: integer
+      - description: Product status
+        enum:
+        - draft
+        - active
+        - inactive
+        - blocked
+        in: query
+        name: status
+        type: string
+      - description: Pagination offset
+        in: query
+        name: offset
+        type: integer
+      - description: Pagination limit
+        in: query
+        name: limit
+        type: integer
+      - description: Sort field
+        in: query
+        name: sort_by
+        type: string
+      - description: Sort order
+        enum:
+        - asc
+        - desc
+        in: query
+        name: sort_order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product.ProductsListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: List products
+      tags:
+      - Products
+    post:
+      consumes:
+      - application/json
+      description: Creates a new product for the authenticated seller
+      parameters:
+      - description: Create product request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.CreateProductRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/product.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create product
+      tags:
+      - Products
+  /products/{id}:
+    delete:
+      description: Deletes a product. Seller can delete only products from own store,
+        admin can delete any product
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete product
+      tags:
+      - Products
+    get:
+      consumes:
+      - application/json
+      description: Returns product by product ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get product by ID
+      tags:
+      - Products
+    patch:
+      consumes:
+      - application/json
+      description: Updates a product. Seller can update only products from own store,
+        admin can update any product
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Patch product request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.PatchProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update product
+      tags:
+      - Products
+  /products/store/{store_id}/slug/{slug}:
+    get:
+      consumes:
+      - application/json
+      description: Returns product by store ID and product slug
+      parameters:
+      - description: Store ID
+        in: path
+        name: store_id
+        required: true
+        type: string
+      - description: Product slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get product by slug
+      tags:
+      - Products
+  /stores:
+    get:
+      consumes:
+      - application/json
+      description: Returns public/global list of stores with optional filters
+      parameters:
+      - description: Search by store name, slug, description or other searchable fields
+        in: query
+        name: search
+        type: string
+      - description: Seller ID
+        in: query
+        name: seller_id
+        type: string
+      - description: Store status
+        enum:
+        - active
+        - inactive
+        - blocked
+        - moderation
+        in: query
+        name: status
+        type: string
+      - description: Pagination offset
+        in: query
+        name: offset
+        type: integer
+      - description: Pagination limit
+        in: query
+        name: limit
+        type: integer
+      - description: Sort field
+        enum:
+        - created_at
+        - name
+        in: query
+        name: sort_by
+        type: string
+      - description: Sort order
+        enum:
+        - asc
+        - desc
+        in: query
+        name: sort_order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.ListStoreResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: List stores
+      tags:
+      - Stores
+  /stores/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Returns store by store ID
+      parameters:
+      - description: Store ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.StoreResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get store by ID
+      tags:
+      - Stores
+  /stores/admin:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new store for a selected seller. Admin only
+      parameters:
+      - description: Admin create store request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/store.AdminCreateStoreRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.StoreResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create store as admin
+      tags:
+      - Stores
+  /stores/admin/{id}:
+    delete:
+      description: Deletes a store. Seller can delete only own store, admin can delete
+        any store
+      parameters:
+      - description: Store ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete store
+      tags:
+      - Stores
+    patch:
+      consumes:
+      - application/json
+      description: Updates any store as admin
+      parameters:
+      - description: Store ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Admin patch store request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/store.AdminPatchStoreRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.StoreResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update store as admin
+      tags:
+      - Stores
+  /stores/seller:
+    get:
+      consumes:
+      - application/json
+      description: Returns stores that belong to the authenticated seller
+      parameters:
+      - description: Search by store name, slug, description or other searchable fields
+        in: query
+        name: search
+        type: string
+      - description: Store status
+        enum:
+        - active
+        - inactive
+        - blocked
+        - moderation
+        in: query
+        name: status
+        type: string
+      - description: Pagination offset
+        in: query
+        name: offset
+        type: integer
+      - description: Pagination limit
+        in: query
+        name: limit
+        type: integer
+      - description: Sort field
+        enum:
+        - created_at
+        - name
+        in: query
+        name: sort_by
+        type: string
+      - description: Sort order
+        enum:
+        - asc
+        - desc
+        in: query
+        name: sort_order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.ListStoreResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List seller stores
+      tags:
+      - Stores
+    post:
+      consumes:
+      - application/json
+      description: Creates a new store for the authenticated seller
+      parameters:
+      - description: Seller create store request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/store.SellerCreateStoreRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.StoreResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create seller store
+      tags:
+      - Stores
+  /stores/seller/{id}:
+    delete:
+      description: Deletes a store. Seller can delete only own store, admin can delete
+        any store
+      parameters:
+      - description: Store ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete store
+      tags:
+      - Stores
+    patch:
+      consumes:
+      - application/json
+      description: Updates a store owned by the authenticated seller
+      parameters:
+      - description: Store ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Seller patch store request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/store.SellerPatchStoreRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.StoreResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update seller store
+      tags:
+      - Stores
+  /stores/slug/{slug}:
+    get:
+      consumes:
+      - application/json
+      description: Returns store by unique store slug
+      parameters:
+      - description: Store slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.StoreResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get store by slug
+      tags:
+      - Stores
+  /users:
+    get:
+      description: Returns a list of users with optional filters by role, status,
+        and search query
+      parameters:
+      - description: User role
+        enum:
+        - admin
+        - seller
+        - client
+        in: query
+        name: role
+        type: string
+      - description: User status
+        enum:
+        - blocked
+        - active
+        - inactive
+        in: query
+        name: status
+        type: string
+      - description: Search by username, email, or other searchable fields
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.ListUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List users
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user
+      parameters:
+      - description: Create user request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create user
+      tags:
+      - Users
+  /users/{id}:
+    delete:
+      description: Deletes user by user ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete user
+      tags:
+      - Users
+    get:
+      description: Returns user by user ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: GetByID user
+      tags:
+      - Users
+    patch:
+      consumes:
+      - application/json
+      description: Updates user fields by user ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Patch user request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.PatchUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user
+      tags:
+      - Users
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -10,11 +10,18 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"tradeOn/docs"
 	"tradeOn/internal/config"
+	"tradeOn/internal/delivery/http/auth"
+	"tradeOn/internal/delivery/http/product"
+	"tradeOn/internal/delivery/http/store"
+	"tradeOn/internal/delivery/http/user"
 	"tradeOn/internal/platform/logs"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 )
 
 type App struct {
@@ -33,6 +40,21 @@ func NewApp(cfg *config.Config) *App {
 		logger:    logger,
 	}
 }
+
+func (a *App) SetupRoutes() {
+	api := a.r.Group("/api")
+	api.Use(a.Container.AuthMiddleware.RequestLogger())
+
+	auth.RegisterRoutes(api, a.Container.AuthHandler, a.Container.AuthMiddleware)
+
+	user.RegisterRoutes(api, a.Container.UserHandler, a.Container.AuthMiddleware)
+
+	store.RegisterRoutes(api, a.Container.StoreHandler, a.Container.AuthMiddleware)
+
+	product.RegisterRoutes(api, a.Container.ProductHandler, a.Container.AuthMiddleware)
+	setupSwagger(a.r)
+}
+
 func (a *App) setupMiddleware() {
 	a.r.Use(cors.New(cors.Config{
 		AllowOrigins:     a.cfg.ServerSecurity.AllowedOrigins,
@@ -43,8 +65,26 @@ func (a *App) setupMiddleware() {
 		MaxAge:           12 * time.Hour,
 	}))
 }
+func setupSwagger(r *gin.Engine) {
+	swaggerHost := os.Getenv("SWAGGER_HOST")
+	if swaggerHost == "" {
+		swaggerHost = "localhost:8080"
+	}
 
+	swaggerScheme := os.Getenv("SWAGGER_SCHEME")
+	if swaggerScheme == "" {
+		swaggerScheme = "http"
+	}
+
+	docs.SwaggerInfo.Host = swaggerHost
+	docs.SwaggerInfo.Schemes = []string{swaggerScheme}
+	docs.SwaggerInfo.BasePath = "/api"
+
+	r.GET("/api/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+}
 func (a *App) Run() {
+	a.setupMiddleware()
+	a.SetupRoutes()
 	server := &http.Server{
 		Addr:    ":" + a.cfg.ServerConfig.Port,
 		Handler: a.r,
@@ -54,6 +94,7 @@ func (a *App) Run() {
 
 	go func() {
 		a.logger.Info("Server starting on port: " + a.cfg.ServerConfig.Port)
+		a.logger.Info("Swagger Link: http://localhost:" + a.cfg.ServerConfig.Port + "/api/swagger/index.html")
 
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErrors <- err

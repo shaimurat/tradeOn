@@ -19,7 +19,7 @@ func NewRefreshTokenRepository(q *sqldb.Queries) *RefreshTokenRepository {
 func (r *RefreshTokenRepository) Create(ctx context.Context, token models.RefreshToken) (*models.RefreshToken, error) {
 	pgToken, err := r.q.CreateRefreshToken(ctx, mappers.ToCreateTokenParams(token))
 	if err != nil {
-		return nil, mappers.MapDBError(err)
+		return nil, err
 	}
 	token = mappers.RefreshTokenToDomain(pgToken)
 

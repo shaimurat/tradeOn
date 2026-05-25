@@ -9,7 +9,7 @@ CREATE TABLE users (
                        username TEXT NOT NULL UNIQUE,
                        password_hash TEXT,
 
-                       avatar TEXT,
+                       avatar_url TEXT,
                        auth_method TEXT NOT NULL DEFAULT 'email',
 
                        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),

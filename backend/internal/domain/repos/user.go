@@ -13,4 +13,5 @@ type UserRepo interface {
 	GetList(ctx context.Context, params models.ListUserParams) ([]models.User, error)
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
 	GetByEmail(ctx context.Context, email string) (*models.User, error)
+	UpdateLastLogin(ctx context.Context, email string) error
 }

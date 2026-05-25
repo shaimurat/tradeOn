@@ -4,26 +4,27 @@ import (
 	"context"
 	"errors"
 	"time"
+	"tradeOn/internal/domain/models/errs"
 
 	"github.com/golang-jwt/jwt/v5"
 
 	"tradeOn/internal/domain/models"
 )
 
-type Service struct {
+type JwtService struct {
 	accessSecret  []byte
 	refreshSecret []byte
 	accessTTL     time.Duration
 	refreshTTL    time.Duration
 }
 
-func NewService(
+func NewJwtService(
 	accessSecret string,
 	refreshSecret string,
 	accessTTL time.Duration,
 	refreshTTL time.Duration,
-) *Service {
-	return &Service{
+) *JwtService {
+	return &JwtService{
 		accessSecret:  []byte(accessSecret),
 		refreshSecret: []byte(refreshSecret),
 		accessTTL:     accessTTL,
@@ -38,29 +39,28 @@ type tokenClaims struct {
 	jwt.RegisteredClaims
 }
 
-func (s *Service) GenerateAccessToken(ctx context.Context, user models.User) (string, error) {
+func (s *JwtService) GenerateAccessToken(ctx context.Context, user models.User) (string, error) {
 	return s.generateToken(user, s.accessSecret, s.accessTTL)
 }
 
-func (s *Service) GenerateRefreshToken(ctx context.Context, user models.User) (string, error) {
+func (s *JwtService) GenerateRefreshToken(ctx context.Context, user models.User) (string, error) {
 	return s.generateToken(user, s.refreshSecret, s.refreshTTL)
 }
 
-func (s *Service) ValidateAccessToken(ctx context.Context, tokenString string) (*models.TokenClaims, error) {
+func (s *JwtService) ValidateAccessToken(ctx context.Context, tokenString string) (*models.TokenClaims, error) {
 	return s.validateToken(tokenString, s.accessSecret)
 }
 
-func (s *Service) ValidateRefreshToken(ctx context.Context, tokenString string) (*models.TokenClaims, error) {
+func (s *JwtService) ValidateRefreshToken(ctx context.Context, tokenString string) (*models.TokenClaims, error) {
 	return s.validateToken(tokenString, s.refreshSecret)
 }
 
-func (s *Service) generateToken(
+func (s *JwtService) generateToken(
 	user models.User,
 	secret []byte,
 	ttl time.Duration,
 ) (string, error) {
 	now := time.Now()
-
 	claims := tokenClaims{
 		UserID: user.ID,
 		Role:   string(user.Role),
@@ -76,12 +76,12 @@ func (s *Service) generateToken(
 	return token.SignedString(secret)
 }
 
-func (s *Service) validateToken(
+func (s *JwtService) validateToken(
 	tokenString string,
 	secret []byte,
 ) (*models.TokenClaims, error) {
 	if tokenString == "" {
-		return nil, models.ErrUnauthorized
+		return nil, errs.ErrUnauthorized
 	}
 
 	claims := &tokenClaims{}
@@ -98,17 +98,16 @@ func (s *Service) validateToken(
 		},
 	)
 	if err != nil {
-		return nil, models.ErrUnauthorized
+		return nil, errs.ErrUnauthorized
 	}
 
 	if !token.Valid {
-		return nil, models.ErrUnauthorized
+		return nil, errs.ErrUnauthorized
 	}
 
 	if claims.UserID == "" {
-		return nil, models.ErrUnauthorized
+		return nil, errs.ErrUnauthorized
 	}
-
 	return &models.TokenClaims{
 		UserID: claims.UserID,
 		Role:   models.Role(claims.Role),

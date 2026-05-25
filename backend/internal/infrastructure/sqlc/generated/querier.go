@@ -11,20 +11,37 @@ import (
 )
 
 type Querier interface {
+	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
+	CreateProductCategory(ctx context.Context, arg CreateProductCategoryParams) (CreateProductCategoryRow, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
+	CreateStore(ctx context.Context, arg CreateStoreParams) (Store, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteExpiredRefreshTokens(ctx context.Context) error
+	DeleteProduct(ctx context.Context, id pgtype.UUID) error
+	DeleteProductCategory(ctx context.Context, id pgtype.UUID) error
+	DeleteStore(ctx context.Context, id pgtype.UUID) error
 	DeleteUser(ctx context.Context, id pgtype.UUID) error
 	ExistsUserByEmail(ctx context.Context, email string) (bool, error)
+	GetProductByID(ctx context.Context, id pgtype.UUID) (Product, error)
+	GetProductBySlug(ctx context.Context, arg GetProductBySlugParams) (Product, error)
+	GetProductsList(ctx context.Context, arg GetProductsListParams) ([]Product, error)
 	GetRefreshTokenByHash(ctx context.Context, refreshTokenHash string) (RefreshToken, error)
+	GetStoreByID(ctx context.Context, id pgtype.UUID) (Store, error)
+	GetStoreBySlug(ctx context.Context, slug string) (Store, error)
+	GetStoresList(ctx context.Context, arg GetStoresListParams) ([]Store, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	GetUsersList(ctx context.Context, arg GetUsersListParams) ([]User, error)
 	ListActiveRefreshTokensByUserID(ctx context.Context, userID pgtype.UUID) ([]RefreshToken, error)
+	ListProductCategories(ctx context.Context, arg ListProductCategoriesParams) ([]ListProductCategoriesRow, error)
+	PatchProduct(ctx context.Context, arg PatchProductParams) (Product, error)
+	PatchStore(ctx context.Context, arg PatchStoreParams) (Store, error)
 	PatchUser(ctx context.Context, arg PatchUserParams) (PatchUserRow, error)
 	RevokeAllRefreshTokensByUserID(ctx context.Context, userID pgtype.UUID) error
 	RevokeRefreshTokenByHash(ctx context.Context, refreshTokenHash string) error
+	UpdateProductCategory(ctx context.Context, arg UpdateProductCategoryParams) (UpdateProductCategoryRow, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	UpdateUserLastLoginByEmail(ctx context.Context, email string) error
 }
 
 var _ Querier = (*Queries)(nil)
