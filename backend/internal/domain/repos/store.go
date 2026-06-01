@@ -12,4 +12,5 @@ type StoreRepo interface {
 	GetByID(ctx context.Context, id string) (*models.Store, error)
 	GetBySlug(ctx context.Context, slug string) (*models.Store, error)
 	GetList(ctx context.Context, params models.ListStoreParams) ([]models.Store, error)
+	CountList(ctx context.Context, params models.ListStoreParams) (int64, error)
 }

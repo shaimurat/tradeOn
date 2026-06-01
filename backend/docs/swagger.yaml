@@ -116,7 +116,23 @@ definitions:
     - status
     - store_id
     type: object
-  product.CreateProductCategoryBodyRequest:
+  product.CreateProductCategoryRequest:
+    properties:
+      description:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      parent_id:
+        type: string
+      store_id:
+        type: string
+    required:
+    - name
+    - store_id
+    type: object
+  product.CreateProductCategoryWithProductRequest:
     properties:
       description:
         type: string
@@ -134,9 +150,18 @@ definitions:
       product:
         $ref: '#/definitions/product.CreateProductBodyRequest'
       product_category:
-        $ref: '#/definitions/product.CreateProductCategoryBodyRequest'
+        $ref: '#/definitions/product.CreateProductCategoryWithProductRequest'
     required:
     - product
+    type: object
+  product.PatchProductCategoryParams:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      parent_id:
+        type: string
     type: object
   product.PatchProductRequest:
     properties:
@@ -166,6 +191,35 @@ definitions:
         - blocked
       supplier_url:
         type: string
+    type: object
+  product.ProductCategoriesListResponse:
+    properties:
+      count:
+        type: integer
+      product_categories:
+        items:
+          $ref: '#/definitions/product.ProductCategoryDTO'
+        type: array
+    type: object
+  product.ProductCategoryDTO:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      parent_id:
+        type: string
+      store_id:
+        type: string
+    type: object
+  product.ProductCategoryResponse:
+    properties:
+      product_category:
+        $ref: '#/definitions/product.ProductCategoryDTO'
     type: object
   product.ProductDTO:
     properties:
@@ -672,6 +726,219 @@ paths:
       summary: Register user
       tags:
       - Auth
+  /product-categories:
+    get:
+      consumes:
+      - application/json
+      description: Returns product categories with optional filters
+      parameters:
+      - description: Store ID
+        in: query
+        name: store_id
+        type: string
+      - description: Search by category name or description
+        in: query
+        name: search
+        type: string
+      - description: Parent category ID
+        in: query
+        name: parent_id
+        type: string
+      - description: Return only root categories
+        in: query
+        name: only_root
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product.ProductCategoriesListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: List product categories
+      tags:
+      - Product Categories
+    post:
+      consumes:
+      - application/json
+      description: Creates a new product category. Seller can create category only
+        for own store, admin can create for any store
+      parameters:
+      - description: Create product category request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.CreateProductCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/product.ProductCategoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create product category
+      tags:
+      - Product Categories
+  /product-categories/{id}:
+    delete:
+      description: Deletes product category. Seller can delete only categories from
+        own store, admin can delete any category
+      parameters:
+      - description: Product category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete product category
+      tags:
+      - Product Categories
+    get:
+      consumes:
+      - application/json
+      description: Returns product category by ID
+      parameters:
+      - description: Product category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product.ProductCategoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get product category by ID
+      tags:
+      - Product Categories
+    patch:
+      consumes:
+      - application/json
+      description: Updates product category. Seller can update only categories from
+        own store, admin can update any category
+      parameters:
+      - description: Product category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Patch product category request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.PatchProductCategoryParams'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product.ProductCategoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update product category
+      tags:
+      - Product Categories
   /products:
     get:
       consumes:

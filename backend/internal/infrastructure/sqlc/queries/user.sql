@@ -126,6 +126,9 @@ WHERE
     )
 ORDER BY created_at DESC;
 
+
+
+
 -- name: ExistsUserByEmail :one
 SELECT EXISTS (
     SELECT 1

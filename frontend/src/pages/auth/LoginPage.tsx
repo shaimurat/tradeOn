@@ -3,7 +3,10 @@ import { AuthLayout } from '../../widgets/layout/AuthLayout';
 
 export function LoginPage() {
   return (
-    <AuthLayout title="Welcome back" subtitle="Sign in to manage your stores and products.">
+    <AuthLayout
+      title="С возвращением"
+      subtitle="Войдите в аккаунт, чтобы управлять магазинами и товарами."
+    >
       <LoginForm />
     </AuthLayout>
   );

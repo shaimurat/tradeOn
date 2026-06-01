@@ -12,4 +12,5 @@ type ProductRepo interface {
 	GetBySlug(ctx context.Context, storeID, slug string) (*models.Product, error)
 	Delete(ctx context.Context, id string) error
 	GetList(ctx context.Context, params models.ListProductsParams) ([]models.Product, error)
+	CountList(ctx context.Context, params models.ListProductsParams) (int64, error)
 }

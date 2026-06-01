@@ -17,43 +17,43 @@ export type NavigationItem = {
 
 export const navigationItems: NavigationItem[] = [
   {
-    label: 'Overview',
+    label: 'Обзор',
     path: '/dashboard',
     icon: GridViewOutlinedIcon,
     roles: ['admin', 'seller'],
   },
   {
-    label: 'Stores',
+    label: 'Магазины',
     path: '/stores',
     icon: StorefrontOutlinedIcon,
     roles: ['admin', 'seller'],
   },
   {
-    label: 'Products',
+    label: 'Товары',
     path: '/products',
     icon: Inventory2OutlinedIcon,
-    roles: ['admin', 'seller'],
+    roles: ['seller'],
   },
   {
-    label: 'Categories',
+    label: 'Категории',
     path: '/categories',
     icon: CategoryOutlinedIcon,
     roles: ['admin', 'seller'],
   },
   {
-    label: 'Orders',
+    label: 'Заказы',
     path: '/orders',
     icon: ShoppingCartOutlinedIcon,
     roles: ['admin', 'seller'],
   },
   {
-    label: 'Users',
+    label: 'Пользователи',
     path: '/users',
     icon: PeopleAltOutlinedIcon,
     roles: ['admin'],
   },
   {
-    label: 'Settings',
+    label: 'Настройки',
     path: '/settings',
     icon: SettingsOutlinedIcon,
     roles: ['admin', 'seller'],

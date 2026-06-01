@@ -10,6 +10,7 @@ import (
 func RegisterRoutes(
 	api *gin.RouterGroup,
 	productHandler *ProductHandler,
+	productCategoryHandler *ProductCategoryHandler,
 	middleware *middleware.AuthMiddleware,
 ) {
 	products := api.Group("/products")
@@ -28,4 +29,21 @@ func RegisterRoutes(
 		sellerProducts.PATCH("/:id", productHandler.Update)
 		sellerProducts.DELETE("/:id", productHandler.Delete)
 	}
+
+	productCategories := api.Group("/product-categories")
+
+	// Public category routes
+	productCategories.GET("", productCategoryHandler.List)
+	productCategories.GET("/:id", productCategoryHandler.GetByID)
+
+	// Protected category routes
+	protectedCategories := api.Group("/product-categories")
+	protectedCategories.Use(middleware.AuthRequire())
+	protectedCategories.Use(middleware.RequireRole(models.RoleAdmin, models.RoleSeller))
+	{
+		protectedCategories.POST("", productCategoryHandler.Create)
+		protectedCategories.PATCH("/:id", productCategoryHandler.Update)
+		protectedCategories.DELETE("/:id", productCategoryHandler.Delete)
+	}
+
 }

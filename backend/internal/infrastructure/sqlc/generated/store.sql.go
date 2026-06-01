@@ -11,6 +11,40 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countStoresList = `-- name: CountStoresList :one
+SELECT COUNT(*)::bigint
+FROM stores
+WHERE
+    (
+        $1::text IS NULL
+        OR $1::text = ''
+        OR name ILIKE '%' || $1::text || '%'
+        OR description ILIKE '%' || $1::text || '%'
+        OR slug ILIKE '%' || $1::text || '%'
+        )
+  AND (
+    $2::uuid IS NULL
+        OR seller_id = $2::uuid
+    )
+  AND (
+    $3::text IS NULL
+        OR status = $3::text
+    )
+`
+
+type CountStoresListParams struct {
+	Search   pgtype.Text `json:"search"`
+	SellerID pgtype.UUID `json:"seller_id"`
+	Status   pgtype.Text `json:"status"`
+}
+
+func (q *Queries) CountStoresList(ctx context.Context, arg CountStoresListParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countStoresList, arg.Search, arg.SellerID, arg.Status)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const createStore = `-- name: CreateStore :one
 INSERT INTO stores (
     name,

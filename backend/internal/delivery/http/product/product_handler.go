@@ -217,12 +217,12 @@ func (h *ProductHandler) ListProducts(c *gin.Context) {
 		return
 	}
 	params := ListProductsRequestToParams(req)
-	products, err := h.productUseCase.GetList(c.Request.Context(), params)
+	products, count, err := h.productUseCase.GetList(c.Request.Context(), params)
 	if err != nil {
 		response.HandleDomainError(c, err)
 		return
 	}
 	productsDto := ToProductDTOs(products)
 
-	c.JSON(200, ProductsListResponse{Products: productsDto, Count: len(products)})
+	c.JSON(200, ProductsListResponse{Products: productsDto, Count: count})
 }

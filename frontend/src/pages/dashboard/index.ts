@@ -1,3 +1,3 @@
 // src/pages/dashboard/index.ts
 
-export { DashboardPage } from './ui/DashboardPage';
+export { DashboardPage } from './DashboardPage';

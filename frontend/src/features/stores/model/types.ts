@@ -56,6 +56,7 @@ export type SellerPatchStoreRequest = {
 export type AdminPatchStoreRequest = SellerPatchStoreRequest & {
   status?: StoreStatus;
 };
+
 export type StoreFilters = {
   search: string;
   status: StoreStatus | 'all';
@@ -63,6 +64,7 @@ export type StoreFilters = {
   sort_by: StoreSortBy;
   sort_order: SortOrder;
 };
+
 export type ListStoreParams = {
   search?: string;
   seller_id?: string;

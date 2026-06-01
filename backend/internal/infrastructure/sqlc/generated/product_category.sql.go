@@ -11,6 +11,46 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countProductCategories = `-- name: CountProductCategories :one
+SELECT COUNT(*)::bigint
+FROM product_categories
+WHERE store_id = $1
+  AND is_active = true
+  AND (
+    $2::text IS NULL
+      OR $2::text = ''
+      OR name ILIKE '%' || $2::text || '%'
+      OR description ILIKE '%' || $2::text || '%'
+    )
+  AND (
+    $3::boolean = false
+      OR parent_id IS NULL
+    )
+  AND (
+    $4::uuid IS NULL
+      OR parent_id = $4::uuid
+    )
+`
+
+type CountProductCategoriesParams struct {
+	StoreID  pgtype.UUID `json:"store_id"`
+	Search   pgtype.Text `json:"search"`
+	OnlyRoot bool        `json:"only_root"`
+	ParentID pgtype.UUID `json:"parent_id"`
+}
+
+func (q *Queries) CountProductCategories(ctx context.Context, arg CountProductCategoriesParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countProductCategories,
+		arg.StoreID,
+		arg.Search,
+		arg.OnlyRoot,
+		arg.ParentID,
+	)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const createProductCategory = `-- name: CreateProductCategory :one
 INSERT INTO product_categories (
     store_id,
@@ -80,6 +120,41 @@ WHERE id = $1
 func (q *Queries) DeleteProductCategory(ctx context.Context, id pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, deleteProductCategory, id)
 	return err
+}
+
+const getProductCategoryByID = `-- name: GetProductCategoryByID :one
+SELECT
+    id,
+    store_id,
+    name,
+    description,
+    parent_id,
+    is_active
+FROM product_categories
+WHERE id = $1
+`
+
+type GetProductCategoryByIDRow struct {
+	ID          pgtype.UUID `json:"id"`
+	StoreID     pgtype.UUID `json:"store_id"`
+	Name        string      `json:"name"`
+	Description pgtype.Text `json:"description"`
+	ParentID    pgtype.UUID `json:"parent_id"`
+	IsActive    bool        `json:"is_active"`
+}
+
+func (q *Queries) GetProductCategoryByID(ctx context.Context, id pgtype.UUID) (GetProductCategoryByIDRow, error) {
+	row := q.db.QueryRow(ctx, getProductCategoryByID, id)
+	var i GetProductCategoryByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.StoreID,
+		&i.Name,
+		&i.Description,
+		&i.ParentID,
+		&i.IsActive,
+	)
+	return i, err
 }
 
 const listProductCategories = `-- name: ListProductCategories :many

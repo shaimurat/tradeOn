@@ -117,3 +117,35 @@ func ToProductCategoryDTOs(categories []models.ProductCategory) []ProductCategor
 
 	return result
 }
+
+func ToProductCategoryFromCreateRequest(req CreateProductCategoryRequest) models.ProductCategory {
+	var isActive bool
+	if req.IsActive != nil {
+		isActive = *req.IsActive
+	} else {
+		isActive = true
+	}
+	return models.ProductCategory{
+		StoreID:     req.StoreID,
+		Name:        req.Name,
+		Description: req.Description,
+		ParentID:    req.ParentID,
+		IsActive:    isActive,
+	}
+}
+func ToProductCategoryPatchParams(req PatchProductCategoryParams) models.PatchProductCategoryParams {
+	return models.PatchProductCategoryParams{
+		Name:        req.Name,
+		Description: req.Description,
+		ParentID:    req.ParentID,
+	}
+}
+
+func ToProductCategoryListParams(req ListProductCategoryParams) models.ListProductCategoryParams {
+	return models.ListProductCategoryParams{
+		StoreID:  req.StoreID,
+		Search:   req.Search,
+		ParentID: req.ParentID,
+		OnlyRoot: req.OnlyRoot,
+	}
+}

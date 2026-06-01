@@ -11,6 +11,75 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countProductsList = `-- name: CountProductsList :one
+WITH RECURSIVE category_tree AS (
+    SELECT
+        id
+    FROM product_categories
+    WHERE id = $3::uuid
+
+UNION ALL
+
+SELECT
+    pc.id
+FROM product_categories pc
+         INNER JOIN category_tree ct ON pc.parent_id = ct.id
+    )
+SELECT COUNT(*)::bigint
+FROM products p
+WHERE
+    p.store_id = $1::uuid
+    AND (
+        $2::text IS NULL
+        OR $2::text = ''
+        OR p.name ILIKE '%' || $2::text || '%'
+        OR p.description ILIKE '%' || $2::text || '%'
+        OR p.slug ILIKE '%' || $2::text || '%'
+        OR p.sku ILIKE '%' || $2::text || '%'
+    )
+    AND (
+        $3::uuid IS NULL
+        OR p.category_id IN (
+            SELECT id FROM category_tree
+        )
+    )
+    AND (
+        $4::bigint IS NULL
+        OR p.price >= $4::bigint
+    )
+    AND (
+        $5::bigint IS NULL
+        OR p.price <= $5::bigint
+    )
+    AND (
+        $6::product_status IS NULL
+        OR p.status = $6::product_status
+    )
+`
+
+type CountProductsListParams struct {
+	StoreID    pgtype.UUID       `json:"store_id"`
+	Search     pgtype.Text       `json:"search"`
+	CategoryID pgtype.UUID       `json:"category_id"`
+	PriceFrom  pgtype.Int8       `json:"price_from"`
+	PriceTo    pgtype.Int8       `json:"price_to"`
+	Status     NullProductStatus `json:"status"`
+}
+
+func (q *Queries) CountProductsList(ctx context.Context, arg CountProductsListParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countProductsList,
+		arg.StoreID,
+		arg.Search,
+		arg.CategoryID,
+		arg.PriceFrom,
+		arg.PriceTo,
+		arg.Status,
+	)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const createProduct = `-- name: CreateProduct :one
 INSERT INTO products (
     store_id,

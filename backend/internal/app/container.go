@@ -17,6 +17,7 @@ import (
 	sqldb "tradeOn/internal/infrastructure/sqlc/generated"
 	"tradeOn/internal/platform/database"
 	"tradeOn/internal/usecase/auth_uc"
+	"tradeOn/internal/usecase/product_category_uc"
 	"tradeOn/internal/usecase/product_uc"
 	"tradeOn/internal/usecase/store_uc"
 	"tradeOn/internal/usecase/user_uc"
@@ -25,11 +26,12 @@ import (
 const PasswordHashCost = 12
 
 type Container struct {
-	AuthMiddleware *middleware.AuthMiddleware
-	AuthHandler    *auth.AuthHandler
-	UserHandler    *user.UserHandler
-	StoreHandler   *store.StoreHandler
-	ProductHandler *product.ProductHandler
+	AuthMiddleware         *middleware.AuthMiddleware
+	AuthHandler            *auth.AuthHandler
+	UserHandler            *user.UserHandler
+	StoreHandler           *store.StoreHandler
+	ProductHandler         *product.ProductHandler
+	ProductCategoryHandler *product.ProductCategoryHandler
 }
 
 func NewContainer(cfg *config.Config, logger *slog.Logger) *Container {
@@ -60,20 +62,23 @@ func NewContainer(cfg *config.Config, logger *slog.Logger) *Container {
 	userUseCase := user_uc.NewUserUseCase(userRepo, hasher)
 	storeUseCase := store_uc.NewStoreUseCase(storeRepo, logger)
 	productUseCase := product_uc.NewProductUseCase(productRepo, productCategoryRepo, storeRepo, logger)
+	productCategoryUseCase := product_category_uc.NewProductCategoryUseCase(productCategoryRepo, storeRepo, logger)
 
 	//Handlers
 	authHandler := auth.NewAuthHandler(authUseCase, cfg)
 	UserHandler := user.NewUserHandler(userUseCase)
 	storeHandler := store.NewStoreHandler(storeUseCase)
 	productHandler := product.NewProductHandler(productUseCase)
+	productCategoryHandler := product.NewProductCategoryHandler(productCategoryUseCase)
 
 	//Middleware
 	authMiddleware := middleware.NewAuthMiddleware(jwtService, logger)
 	return &Container{
-		AuthMiddleware: authMiddleware,
-		AuthHandler:    authHandler,
-		UserHandler:    UserHandler,
-		StoreHandler:   storeHandler,
-		ProductHandler: productHandler,
+		AuthMiddleware:         authMiddleware,
+		AuthHandler:            authHandler,
+		UserHandler:            UserHandler,
+		StoreHandler:           storeHandler,
+		ProductHandler:         productHandler,
+		ProductCategoryHandler: productCategoryHandler,
 	}
 }

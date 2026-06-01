@@ -172,3 +172,25 @@ END DESC,
     created_at DESC
 LIMIT COALESCE(sqlc.narg('limit')::int, 20)
 OFFSET COALESCE(sqlc.narg('offset')::int, 0);
+
+
+
+-- name: CountStoresList :one
+SELECT COUNT(*)::bigint
+FROM stores
+WHERE
+    (
+        sqlc.narg('search')::text IS NULL
+        OR sqlc.narg('search')::text = ''
+        OR name ILIKE '%' || sqlc.narg('search')::text || '%'
+        OR description ILIKE '%' || sqlc.narg('search')::text || '%'
+        OR slug ILIKE '%' || sqlc.narg('search')::text || '%'
+        )
+  AND (
+    sqlc.narg('seller_id')::uuid IS NULL
+        OR seller_id = sqlc.narg('seller_id')::uuid
+    )
+  AND (
+    sqlc.narg('status')::text IS NULL
+        OR status = sqlc.narg('status')::text
+    );

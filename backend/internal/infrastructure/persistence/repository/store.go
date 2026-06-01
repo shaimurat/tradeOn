@@ -69,3 +69,11 @@ func (r *StoreRepository) GetList(ctx context.Context, params models.ListStorePa
 	}
 	return storeList, nil
 }
+
+func (r *StoreRepository) CountList(ctx context.Context, params models.ListStoreParams) (int64, error) {
+	count, err := r.q.CountStoresList(ctx, mappers.ToCountStoresListParams(params))
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}

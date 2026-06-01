@@ -58,11 +58,10 @@ func (ns NullAttributeType) Value() (driver.Value, error) {
 type ProductStatus string
 
 const (
-	ProductStatusDraft      ProductStatus = "draft"
-	ProductStatusActive     ProductStatus = "active"
-	ProductStatusInactive   ProductStatus = "inactive"
-	ProductStatusModeration ProductStatus = "moderation"
-	ProductStatusBlocked    ProductStatus = "blocked"
+	ProductStatusDraft    ProductStatus = "draft"
+	ProductStatusActive   ProductStatus = "active"
+	ProductStatusInactive ProductStatus = "inactive"
+	ProductStatusBlocked  ProductStatus = "blocked"
 )
 
 func (e *ProductStatus) Scan(src interface{}) error {

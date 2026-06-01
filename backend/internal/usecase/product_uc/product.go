@@ -91,13 +91,18 @@ func (uc *ProductUseCase) Delete(ctx context.Context, id, userID string, role mo
 	return nil
 }
 
-func (uc *ProductUseCase) GetList(ctx context.Context, params models.ListProductsParams) ([]models.Product, error) {
+func (uc *ProductUseCase) GetList(ctx context.Context, params models.ListProductsParams) ([]models.Product, int64, error) {
 	products, err := uc.productRepo.GetList(ctx, params)
 	if err != nil {
 		uc.logger.Error("error getting products", "error", err)
-		return nil, usecase.MapDBError(err)
+		return nil, 0, usecase.MapDBError(err)
 	}
-	return products, nil
+	count, err := uc.productRepo.CountList(ctx, params)
+	if err != nil {
+		uc.logger.Error("error counting products", "error", err)
+		return nil, 0, usecase.MapDBError(err)
+	}
+	return products, count, nil
 }
 
 func (uc *ProductUseCase) checkSellerCanManageProduct(ctx context.Context, productID, userID string) error {

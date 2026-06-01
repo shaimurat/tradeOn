@@ -22,8 +22,8 @@ type ProductDTO struct {
 	UpdatedAt    time.Time            `json:"updated_at"`
 }
 type CreateProductRequest struct {
-	Product         CreateProductBodyRequest          `json:"product" binding:"required"`
-	ProductCategory *CreateProductCategoryBodyRequest `json:"product_category,omitempty"`
+	Product         CreateProductBodyRequest                 `json:"product" binding:"required"`
+	ProductCategory *CreateProductCategoryWithProductRequest `json:"product_category,omitempty"`
 }
 
 type CreateProductBodyRequest struct {
@@ -67,9 +67,5 @@ type ProductResponse struct {
 
 type ProductsListResponse struct {
 	Products []ProductDTO `json:"products"`
-	Count    int          `json:"count"`
-}
-
-type ProductCategoryResponse struct {
-	Category ProductCategoryDTO `json:"category"`
+	Count    int64        `json:"count"`
 }

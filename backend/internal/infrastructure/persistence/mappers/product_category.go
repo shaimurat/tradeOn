@@ -65,6 +65,17 @@ func ToDomainProductCategoryFromList(row sqldb.ListProductCategoriesRow) models.
 	}
 }
 
+func ToDomainProductCategoryFromGet(row sqldb.GetProductCategoryByIDRow) models.ProductCategory {
+	return models.ProductCategory{
+		ID:          UuidToString(row.ID),
+		StoreID:     UuidToString(row.StoreID),
+		Name:        row.Name,
+		Description: pgTextToStringPtr(row.Description),
+		ParentID:    pgUUIDToStringPtr(row.ParentID),
+		IsActive:    row.IsActive,
+	}
+}
+
 func ToDomainProductCategories(rows []sqldb.ListProductCategoriesRow) []models.ProductCategory {
 	result := make([]models.ProductCategory, 0, len(rows))
 

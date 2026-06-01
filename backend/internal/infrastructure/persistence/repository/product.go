@@ -68,3 +68,11 @@ func (r *ProductRepository) GetList(ctx context.Context, params models.ListProdu
 	}
 	return mappers.ToDomainProducts(products), nil
 }
+
+func (r *ProductRepository) CountList(ctx context.Context, params models.ListProductsParams) (int64, error) {
+	count, err := r.q.CountProductsList(ctx, mappers.ToCountProductsListParams(params))
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}

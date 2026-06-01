@@ -50,3 +50,11 @@ func (r *ProductCategoryRepository) ListCategories(ctx context.Context, params m
 	}
 	return mappers.ToDomainProductCategories(categories), nil
 }
+func (r *ProductCategoryRepository) GetByID(ctx context.Context, id string) (*models.ProductCategory, error) {
+	category, err := r.q.GetProductCategoryByID(ctx, mappers.StringToUUID(id))
+	if err != nil {
+		return nil, err
+	}
+	result := mappers.ToDomainProductCategoryFromGet(category)
+	return &result, nil
+}

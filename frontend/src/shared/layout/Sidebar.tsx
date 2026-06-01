@@ -22,16 +22,24 @@ type SidebarProps = {
   width: number;
 };
 
+const roleLabels: Record<string, string> = {
+  admin: 'Администратор',
+  seller: 'Продавец',
+  user: 'Пользователь',
+  client: 'Клиент',
+};
+
 export function Sidebar({ open, onClose, width }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
   const user = useAuthStore((state) => state.user);
-  const availableNavigationItems = navigationItems.filter((item) => {
-  if (!user?.role) return false;
 
-  return item.roles.includes(user.role);
-});
+  const availableNavigationItems = navigationItems.filter((item) => {
+    if (!user?.role) return false;
+
+    return item.roles.includes(user.role);
+  });
 
   const sidebarContent = (
     <Box
@@ -88,7 +96,7 @@ export function Sidebar({ open, onClose, width }: SidebarProps) {
               fontWeight: 500,
             }}
           >
-            Seller Platform
+            Платформа для продавцов
           </Typography>
         </Box>
       </Stack>
@@ -102,8 +110,8 @@ export function Sidebar({ open, onClose, width }: SidebarProps) {
           flexGrow: 1,
         }}
       >
-{availableNavigationItems.map((item) => {
-            const Icon = item.icon;
+        {availableNavigationItems.map((item) => {
+          const Icon = item.icon;
 
           const selected =
             location.pathname === item.path ||
@@ -193,7 +201,7 @@ export function Sidebar({ open, onClose, width }: SidebarProps) {
             fontWeight: 700,
           }}
         >
-          {user?.username?.[0]?.toUpperCase() ?? 'N'}
+          {user?.username?.[0]?.toUpperCase() ?? 'U'}
         </Avatar>
 
         <Box sx={{ minWidth: 0, flexGrow: 1 }}>
@@ -205,7 +213,7 @@ export function Sidebar({ open, onClose, width }: SidebarProps) {
               color: 'text.primary',
             }}
           >
-            {user?.username ?? 'John Doe'}
+            {user?.username ?? 'Пользователь'}
           </Typography>
 
           <Typography
@@ -216,7 +224,7 @@ export function Sidebar({ open, onClose, width }: SidebarProps) {
               display: 'block',
             }}
           >
-            {user?.role ?? 'Seller'}
+            {user?.role ? roleLabels[user.role] ?? user.role : 'Продавец'}
           </Typography>
         </Box>
 

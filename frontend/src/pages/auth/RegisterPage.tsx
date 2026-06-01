@@ -3,7 +3,10 @@ import { AuthLayout } from '../../widgets/layout/AuthLayout';
 
 export function RegisterPage() {
   return (
-    <AuthLayout title="Create account" subtitle="Set up your TradeOn account and start selling.">
+    <AuthLayout
+      title="Создать аккаунт"
+      subtitle="Зарегистрируйтесь в TradeOn, чтобы начать продавать товары."
+    >
       <RegisterForm />
     </AuthLayout>
   );

@@ -85,3 +85,13 @@ func ToGetProductsListParams(params models.ListProductsParams) generated2.GetPro
 		Limit:      int32PtrToPgInt4(params.Limit),
 	}
 }
+func ToCountProductsListParams(params models.ListProductsParams) generated2.CountProductsListParams {
+	return generated2.CountProductsListParams{
+		StoreID:    StringToUUID(params.StoreID),
+		Search:     stringPtrToPgText(params.Search),
+		CategoryID: stringPtrToPgUUID(params.CategoryID),
+		PriceFrom:  int64PtrToPgInt8(params.PriceFrom),
+		PriceTo:    int64PtrToPgInt8(params.PriceTo),
+		Status:     productStatusPtrToNullProductStatus(params.Status),
+	}
+}

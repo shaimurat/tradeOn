@@ -11,6 +11,9 @@ import (
 )
 
 type Querier interface {
+	CountProductCategories(ctx context.Context, arg CountProductCategoriesParams) (int64, error)
+	CountProductsList(ctx context.Context, arg CountProductsListParams) (int64, error)
+	CountStoresList(ctx context.Context, arg CountStoresListParams) (int64, error)
 	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
 	CreateProductCategory(ctx context.Context, arg CreateProductCategoryParams) (CreateProductCategoryRow, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
@@ -24,6 +27,7 @@ type Querier interface {
 	ExistsUserByEmail(ctx context.Context, email string) (bool, error)
 	GetProductByID(ctx context.Context, id pgtype.UUID) (Product, error)
 	GetProductBySlug(ctx context.Context, arg GetProductBySlugParams) (Product, error)
+	GetProductCategoryByID(ctx context.Context, id pgtype.UUID) (GetProductCategoryByIDRow, error)
 	GetProductsList(ctx context.Context, arg GetProductsListParams) ([]Product, error)
 	GetRefreshTokenByHash(ctx context.Context, refreshTokenHash string) (RefreshToken, error)
 	GetStoreByID(ctx context.Context, id pgtype.UUID) (Store, error)

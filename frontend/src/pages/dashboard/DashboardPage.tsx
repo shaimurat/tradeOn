@@ -1,9 +1,7 @@
-import { useAuthStore } from '../../../features/auth/model/authStore';
+import { useAuthStore } from '../../features/auth/model/authStore';
 
 import { AdminDashboardPage } from './AdminDashboardPage';
 import { SellerDashboardPage } from './SellerDashboardPage';
-
-
 
 export function DashboardPage() {
   const user = useAuthStore((state) => state.user);

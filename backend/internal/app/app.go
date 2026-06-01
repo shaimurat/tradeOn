@@ -51,7 +51,7 @@ func (a *App) SetupRoutes() {
 
 	store.RegisterRoutes(api, a.Container.StoreHandler, a.Container.AuthMiddleware)
 
-	product.RegisterRoutes(api, a.Container.ProductHandler, a.Container.AuthMiddleware)
+	product.RegisterRoutes(api, a.Container.ProductHandler, a.Container.ProductCategoryHandler, a.Container.AuthMiddleware)
 	setupSwagger(a.r)
 }
 

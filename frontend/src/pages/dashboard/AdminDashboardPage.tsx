@@ -13,27 +13,27 @@ import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 
 const stats = [
   {
-    label: 'Total Stores',
+    label: 'Магазины',
     value: '128',
-    helper: 'All marketplace stores',
+    helper: 'Все магазины на платформе',
     icon: StorefrontOutlinedIcon,
   },
   {
-    label: 'Products',
-    value: '4,820',
-    helper: 'All seller products',
+    label: 'Товары',
+    value: '4 820',
+    helper: 'Все товары продавцов',
     icon: Inventory2OutlinedIcon,
   },
   {
-    label: 'Orders',
-    value: '12,340',
-    helper: 'All platform orders',
+    label: 'Заказы',
+    value: '12 340',
+    helper: 'Все заказы платформы',
     icon: ShoppingCartOutlinedIcon,
   },
   {
-    label: 'Users',
-    value: '8,921',
-    helper: 'Clients and sellers',
+    label: 'Пользователи',
+    value: '8 921',
+    helper: 'Клиенты и продавцы',
     icon: PeopleAltOutlinedIcon,
   },
 ];
@@ -42,10 +42,10 @@ export function AdminDashboardPage() {
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h2">Admin overview</Typography>
+        <Typography variant="h2">Панель администратора</Typography>
 
         <Typography variant="body1" sx={{ mt: 0.25, color: 'text.secondary' }}>
-          Platform-wide analytics, stores, users and marketplace activity.
+          Общая аналитика платформы, магазины, пользователи и активность маркетплейса.
         </Typography>
       </Box>
 

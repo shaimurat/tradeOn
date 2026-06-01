@@ -159,13 +159,13 @@ func (h *StoreHandler) ListSellerStores(c *gin.Context) { // Returns stores that
 		return
 	}
 	params.SellerID = &userID
-	stores, err := h.storeUseCase.GetList(c.Request.Context(), listStoreRequestToParams(params))
+	stores, count, err := h.storeUseCase.GetList(c.Request.Context(), listStoreRequestToParams(params))
 	if err != nil {
 		response.HandleDomainError(c, err)
 		return
 	}
 	storeDtos := ToStoreDTOs(stores)
-	c.JSON(200, ListStoreResponse{Stores: storeDtos, Count: len(stores)})
+	c.JSON(200, ListStoreResponse{Stores: storeDtos, Count: count})
 }
 
 // ListStoresGlobal godoc
@@ -191,13 +191,13 @@ func (h *StoreHandler) ListStoresGlobal(c *gin.Context) { // Global search which
 		response.HandleDomainError(c, errs.ErrInvalidInput)
 		return
 	}
-	stores, err := h.storeUseCase.GetList(c.Request.Context(), listStoreRequestToParams(params))
+	stores, count, err := h.storeUseCase.GetList(c.Request.Context(), listStoreRequestToParams(params))
 	if err != nil {
 		response.HandleDomainError(c, err)
 		return
 	}
 	storeDtos := ToStoreDTOs(stores)
-	c.JSON(200, ListStoreResponse{Stores: storeDtos, Count: len(stores)})
+	c.JSON(200, ListStoreResponse{Stores: storeDtos, Count: count})
 }
 
 // GetStoreByID godoc

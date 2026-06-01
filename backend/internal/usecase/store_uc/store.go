@@ -72,13 +72,18 @@ func (uc *StoreUseCase) GetBySlug(ctx context.Context, slug string) (*models.Sto
 	return store, nil
 }
 
-func (uc *StoreUseCase) GetList(ctx context.Context, params models.ListStoreParams) ([]models.Store, error) {
+func (uc *StoreUseCase) GetList(ctx context.Context, params models.ListStoreParams) ([]models.Store, int64, error) {
 	stores, err := uc.repo.GetList(ctx, params)
 	if err != nil {
 		uc.logger.Error("Failed to get store list", "error", err)
-		return nil, usecase.MapDBError(err)
+		return nil, 0, usecase.MapDBError(err)
 	}
-	return stores, nil
+	count, err := uc.repo.CountList(ctx, params)
+	if err != nil {
+		uc.logger.Error("Failed to count store list", "error", err)
+		return nil, 0, usecase.MapDBError(err)
+	}
+	return stores, count, nil
 }
 
 func (uc *StoreUseCase) checkStoreBelongsToSeller(ctx context.Context, storeID, userID string) error {

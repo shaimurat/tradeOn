@@ -16,7 +16,7 @@ const getCurrentUserRole = () => {
 };
 
 const getSellerListParams = (
-  params?: ListStoreParams,
+  params?: ListStoreParams
 ): Omit<ListStoreParams, 'seller_id'> | undefined => {
   if (!params) {
     return undefined;
@@ -28,10 +28,6 @@ const getSellerListParams = (
 };
 
 export const storesApi = {
-  /**
-   * Public/global stores list.
-   * Для обычных пользователей.
-   */
   getStores: async (params?: ListStoreParams) => {
     const response = await api.get<ListStoreResponse>('/stores', {
       params,
@@ -40,10 +36,6 @@ export const storesApi = {
     return response.data;
   },
 
-  /**
-   * Seller stores list.
-   * Для продавца.
-   */
   getSellerStores: async (params?: Omit<ListStoreParams, 'seller_id'>) => {
     const response = await api.get<ListStoreResponse>('/stores/seller', {
       params,
@@ -52,11 +44,6 @@ export const storesApi = {
     return response.data;
   },
 
-  /**
-   * Universal stores list.
-   * Если user.role === 'seller', использует seller route.
-   * Иначе использует public/global route.
-   */
   getMyStores: async (params?: ListStoreParams) => {
     const role = getCurrentUserRole();
 
@@ -87,38 +74,25 @@ export const storesApi = {
     return response.data.store;
   },
 
-  /**
-   * Admin create.
-   */
   adminCreateStore: async (payload: AdminCreateStoreRequest) => {
     const response = await api.post<StoreResponse>('/stores/admin', payload);
 
     return response.data.store;
   },
 
-  /**
-   * Seller create.
-   */
   sellerCreateStore: async (payload: SellerCreateStoreRequest) => {
     const response = await api.post<StoreResponse>('/stores/seller', payload);
 
     return response.data.store;
   },
 
-  /**
-   * Universal create.
-   * Seller -> /stores/seller
-   * Admin -> /stores/admin
-   */
-  createStore: async (
-    payload: SellerCreateStoreRequest | AdminCreateStoreRequest,
-  ) => {
+  createStore: async (payload: SellerCreateStoreRequest | AdminCreateStoreRequest) => {
     const role = getCurrentUserRole();
 
     if (role === 'seller') {
       const response = await api.post<StoreResponse>(
         '/stores/seller',
-        payload as SellerCreateStoreRequest,
+        payload as SellerCreateStoreRequest
       );
 
       return response.data.store;
@@ -127,7 +101,7 @@ export const storesApi = {
     if (role === 'admin') {
       const response = await api.post<StoreResponse>(
         '/stores/admin',
-        payload as AdminCreateStoreRequest,
+        payload as AdminCreateStoreRequest
       );
 
       return response.data.store;
@@ -136,45 +110,25 @@ export const storesApi = {
     throw new Error('You do not have permission to create store');
   },
 
-  /**
-   * Admin patch.
-   */
   adminPatchStore: async (id: string, payload: AdminPatchStoreRequest) => {
-    const response = await api.patch<StoreResponse>(
-      `/stores/admin/${id}`,
-      payload,
-    );
+    const response = await api.patch<StoreResponse>(`/stores/admin/${id}`, payload);
 
     return response.data.store;
   },
 
-  /**
-   * Seller patch.
-   */
   sellerPatchStore: async (id: string, payload: SellerPatchStoreRequest) => {
-    const response = await api.patch<StoreResponse>(
-      `/stores/seller/${id}`,
-      payload,
-    );
+    const response = await api.patch<StoreResponse>(`/stores/seller/${id}`, payload);
 
     return response.data.store;
   },
 
-  /**
-   * Universal patch.
-   * Seller -> /stores/seller/:id
-   * Admin -> /stores/admin/:id
-   */
-  patchStore: async (
-    id: string,
-    payload: SellerPatchStoreRequest | AdminPatchStoreRequest,
-  ) => {
+  patchStore: async (id: string, payload: SellerPatchStoreRequest | AdminPatchStoreRequest) => {
     const role = getCurrentUserRole();
 
     if (role === 'seller') {
       const response = await api.patch<StoreResponse>(
         `/stores/seller/${id}`,
-        payload as SellerPatchStoreRequest,
+        payload as SellerPatchStoreRequest
       );
 
       return response.data.store;
@@ -183,7 +137,7 @@ export const storesApi = {
     if (role === 'admin') {
       const response = await api.patch<StoreResponse>(
         `/stores/admin/${id}`,
-        payload as AdminPatchStoreRequest,
+        payload as AdminPatchStoreRequest
       );
 
       return response.data.store;
@@ -200,11 +154,6 @@ export const storesApi = {
     await api.delete(`/stores/seller/${id}`);
   },
 
-  /**
-   * Universal delete.
-   * Seller -> /stores/seller/:id
-   * Admin -> /stores/admin/:id
-   */
   deleteStore: async (id: string) => {
     const role = getCurrentUserRole();
 

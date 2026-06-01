@@ -13,6 +13,8 @@ import { ProtectedRoute } from './ProtectedRouter';
 import { GuestRoute } from './GuestRoute';
 import { RoleRoute } from './RoleRoute';
 import { DashboardLayout } from '../../shared/layout/DashboardLayout';
+import { ProductsPage } from '../../pages/products';
+import { ProductCategoriesPage } from '../../pages/productCategories/ProductCategoriesPage';
 
 const router = createBrowserRouter([
   {
@@ -71,19 +73,32 @@ const router = createBrowserRouter([
           //   ],
           // },
 
-          // {
-          //   element: <RoleRoute allowedRoles={['seller']} />,
-          //   children: [
-          //     {
-          //       path: '/products',
-          //       element: <ProductsPage />,
-          //     },
-          //     {
-          //       path: '/orders',
-          //       element: <OrdersPage />,
-          //     },
-          //   ],
-          // },
+          {
+            element: <RoleRoute allowedRoles={['seller']} />,
+            children: [
+              {
+                path: '/products',
+                element: <ProductsPage />,
+              },
+              // {
+              //   path: '/orders',
+              //   element: <OrdersPage />,
+              // },
+            ],
+          },
+          {
+            element: <RoleRoute allowedRoles={['seller']} />,
+            children: [
+              {
+                path: '/categories',
+                element: <ProductCategoriesPage />,
+              },
+              // {
+              //   path: '/orders',
+              //   element: <OrdersPage />,
+              // },
+            ],
+          },
         ],
       },
     ],

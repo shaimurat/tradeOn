@@ -74,3 +74,10 @@ func ToGetStoresListParams(params models.ListStoreParams) generated2.GetStoresLi
 		Limit:     intPtrToPgInt4(params.Limit),
 	}
 }
+func ToCountStoresListParams(params models.ListStoreParams) generated2.CountStoresListParams {
+	return generated2.CountStoresListParams{
+		Search:   stringPtrToPgText(params.Search),
+		SellerID: stringPtrToPgUUID(params.SellerID),
+		Status:   stringPtrToPgText((*string)(params.Status)),
+	}
+}

@@ -70,5 +70,5 @@ type ListStoreParams struct {
 
 type ListStoreResponse struct {
 	Stores []StoreDTO `json:"stores"`
-	Count  int        `json:"count"`
+	Count  int64      `json:"count"`
 }

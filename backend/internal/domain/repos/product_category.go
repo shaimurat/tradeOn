@@ -10,4 +10,5 @@ type ProductCategoryRepo interface {
 	Update(ctx context.Context, id string, category models.PatchProductCategoryParams) (*models.ProductCategory, error)
 	Delete(ctx context.Context, id string) error
 	ListCategories(ctx context.Context, params models.ListProductCategoryParams) ([]models.ProductCategory, error)
+	GetByID(ctx context.Context, id string) (*models.ProductCategory, error)
 }

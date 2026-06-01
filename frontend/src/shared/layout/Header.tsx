@@ -43,7 +43,7 @@ export function Header({ onOpenSidebar }: HeaderProps) {
     );
   });
 
-  const title = activeItem?.label ?? 'Dashboard';
+  const title = activeItem?.label ?? 'Панель управления';
 
   const handleLogout = async () => {
     try {
@@ -79,19 +79,12 @@ export function Header({ onOpenSidebar }: HeaderProps) {
         }}
       >
         <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-          <IconButton
-            onClick={onOpenSidebar}
-            sx={{
-              display: {
-                xs: 'inline-flex',
-                md: 'none',
-              },
-            }}
-          >
+          <IconButton onClick={onOpenSidebar} aria-label="Открыть меню">
             <MenuIcon sx={{ fontSize: 20 }} />
           </IconButton>
 
           <IconButton
+            aria-label="Боковая панель"
             sx={{
               display: {
                 xs: 'none',
@@ -114,8 +107,8 @@ export function Header({ onOpenSidebar }: HeaderProps) {
         </Stack>
 
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-          <Tooltip title="Notifications">
-            <IconButton>
+          <Tooltip title="Уведомления">
+            <IconButton aria-label="Уведомления">
               <Badge
                 variant="dot"
                 color="primary"
@@ -130,10 +123,11 @@ export function Header({ onOpenSidebar }: HeaderProps) {
             </IconButton>
           </Tooltip>
 
-          <Tooltip title="Account">
+          <Tooltip title="Аккаунт">
             <IconButton
               onClick={(event) => setAnchorEl(event.currentTarget)}
               sx={{ p: 0.25 }}
+              aria-label="Аккаунт"
             >
               <Avatar
                 src={user?.avatar_url ?? undefined}
@@ -146,7 +140,7 @@ export function Header({ onOpenSidebar }: HeaderProps) {
                   fontWeight: 700,
                 }}
               >
-                {user?.username?.[0]?.toUpperCase() ?? 'JD'}
+                {user?.username?.[0]?.toUpperCase() ?? 'U'}
               </Avatar>
             </IconButton>
           </Tooltip>
@@ -174,11 +168,11 @@ export function Header({ onOpenSidebar }: HeaderProps) {
           >
             <Box sx={{ px: 2, py: 1.5 }}>
               <Typography sx={{ fontWeight: 700 }}>
-                {user?.username ?? 'John Doe'}
+                {user?.username ?? 'Пользователь'}
               </Typography>
 
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                {user?.email ?? 'seller@tradeon.kz'}
+                {user?.email ?? 'user@tradeon.kz'}
               </Typography>
             </Box>
 
@@ -189,7 +183,7 @@ export function Header({ onOpenSidebar }: HeaderProps) {
               }}
             >
               <PersonIcon fontSize="small" sx={{ mr: 1.5 }} />
-              Profile
+              Профиль
             </MenuItem>
 
             <MenuItem
@@ -199,12 +193,12 @@ export function Header({ onOpenSidebar }: HeaderProps) {
               }}
             >
               <SettingsIcon fontSize="small" sx={{ mr: 1.5 }} />
-              Settings
+              Настройки
             </MenuItem>
 
             <MenuItem onClick={handleLogout}>
               <LogoutIcon fontSize="small" sx={{ mr: 1.5 }} />
-              Logout
+              Выйти
             </MenuItem>
           </Menu>
         </Stack>

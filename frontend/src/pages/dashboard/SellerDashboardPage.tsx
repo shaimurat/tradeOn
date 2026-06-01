@@ -1,11 +1,4 @@
-import {
-  Box,
-  Card,
-  CardContent,
-  Grid,
-  Stack,
-  Typography,
-} from '@mui/material';
+import { Box, Card, CardContent, Grid, Stack, Typography } from '@mui/material';
 import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
@@ -13,27 +6,27 @@ import AttachMoneyOutlinedIcon from '@mui/icons-material/AttachMoneyOutlined';
 
 const stats = [
   {
-    label: 'My Stores',
+    label: 'Мои магазины',
     value: '2',
-    helper: 'Your active platforms',
+    helper: 'Ваши активные магазины',
     icon: StorefrontOutlinedIcon,
   },
   {
-    label: 'My Products',
+    label: 'Мои товары',
     value: '248',
-    helper: 'Products in your stores',
+    helper: 'Товары в ваших магазинах',
     icon: Inventory2OutlinedIcon,
   },
   {
-    label: 'My Orders',
-    value: '1,429',
-    helper: 'Orders from your stores',
+    label: 'Мои заказы',
+    value: '1 429',
+    helper: 'Заказы из ваших магазинов',
     icon: ShoppingCartOutlinedIcon,
   },
   {
-    label: 'Revenue',
-    value: '$18,240',
-    helper: 'Your store revenue',
+    label: 'Доход',
+    value: '18 240 ₸',
+    helper: 'Выручка ваших магазинов',
     icon: AttachMoneyOutlinedIcon,
   },
 ];
@@ -42,10 +35,10 @@ export function SellerDashboardPage() {
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h2">Seller overview</Typography>
+        <Typography variant="h2">Панель продавца</Typography>
 
         <Typography variant="body1" sx={{ mt: 0.25, color: 'text.secondary' }}>
-          Manage your stores, products, orders and sales.
+          Управляйте своими магазинами, товарами, заказами и продажами.
         </Typography>
       </Box>
 
