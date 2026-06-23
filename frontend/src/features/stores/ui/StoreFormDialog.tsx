@@ -430,7 +430,7 @@ export function StoreFormDialog(props: StoreFormDialogProps) {
             value={values.slug}
             required
             error={Boolean(fieldErrors.slug)}
-            helperText={fieldErrors.slug ?? 'Например: my-store'}
+            helperText={fieldErrors.slug ?? 'Отоброжается в URL магазина, используйте латинские буквы, цифры и дефисы'}
             onChange={(event) => {
               handleChange('slug', event.target.value);
             }}
@@ -459,7 +459,7 @@ export function StoreFormDialog(props: StoreFormDialogProps) {
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
               <Button variant="outlined" component="label" disabled={isSubmitting}>
-                Выбрать логотип
+                Загрузить логотип
                 <input
                   hidden
                   type="file"
@@ -489,18 +489,7 @@ export function StoreFormDialog(props: StoreFormDialogProps) {
               </Typography>
             )}
 
-            <TextField
-              size="small"
-              label="Logo URL"
-              value={values.logo_url}
-              error={Boolean(fieldErrors.logo_url)}
-              helperText={
-                fieldErrors.logo_url ?? 'Можно вставить ссылку вручную или выбрать файл выше'
-              }
-              onChange={(event) => {
-                handleChange('logo_url', event.target.value);
-              }}
-            />
+          
           </Stack>
 
           <Stack spacing={1}>
@@ -526,7 +515,7 @@ export function StoreFormDialog(props: StoreFormDialogProps) {
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
               <Button variant="outlined" component="label" disabled={isSubmitting}>
-                Выбрать баннер
+                Загрузить баннер
                 <input
                   hidden
                   type="file"
@@ -555,19 +544,6 @@ export function StoreFormDialog(props: StoreFormDialogProps) {
                 Выбран файл: {bannerFile.name}
               </Typography>
             )}
-
-            <TextField
-              size="small"
-              label="Banner URL"
-              value={values.banner_url}
-              error={Boolean(fieldErrors.banner_url)}
-              helperText={
-                fieldErrors.banner_url ?? 'Можно вставить ссылку вручную или выбрать файл выше'
-              }
-              onChange={(event) => {
-                handleChange('banner_url', event.target.value);
-              }}
-            />
           </Stack>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
@@ -601,7 +577,7 @@ export function StoreFormDialog(props: StoreFormDialogProps) {
             label="Адрес"
             value={values.address}
             error={Boolean(fieldErrors.address)}
-            helperText={fieldErrors.address}
+            helperText={fieldErrors.address ?? "Вставьте ссылку 2GIS"}
             onChange={(event) => {
               handleChange('address', event.target.value);
             }}

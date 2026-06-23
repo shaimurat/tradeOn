@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+
 import {
   Box,
   Button,
@@ -12,15 +13,18 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+
 import Grid from '@mui/material/Grid';
 
 import { cloudinaryApi } from '../../../shared/api/cloudinaryApi';
-import type { ProductCategory } from '../../productCategories/model/types';
-import type { Product, ProductStatus, StoreOption } from '../model/types';
 import { CategoryTreePicker } from '../../../shared/ui/CategoryTreePicker';
 import { FormSection } from '../../../shared/ui/FormSection';
-import { statusLabelMap, statusOptions } from '../lib/productConstants';
+
+import type { ProductCategory } from '../../productCategories/model/types';
+import type { Product, ProductStatus, StoreOption } from '../model/types';
 import type { CategoryPathItem, ProductFormState } from '../lib/productForm';
+
+import { statusLabelMap, statusOptions } from '../lib/productConstants';
 
 type ProductDialogProps = {
   open: boolean;
@@ -39,6 +43,7 @@ type ProductDialogProps = {
   onCategoryParentChange: (parentID: string | null) => void;
   onCategoryPathChange: (path: CategoryPathItem[]) => void;
   onCategoryClear: () => void;
+  onCreateCategory: (parentID: string | null) => void;
 };
 
 export function ProductDialog({
@@ -58,8 +63,10 @@ export function ProductDialog({
   onCategoryParentChange,
   onCategoryPathChange,
   onCategoryClear,
+  onCreateCategory,
 }: ProductDialogProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [imageUploading, setImageUploading] = useState(false);
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
 
@@ -213,7 +220,7 @@ export function ProductDialog({
               <Grid size={12}>
                 <CategoryTreePicker
                   label="Категория товара"
-                  helperText="Выберите существующую категорию или подкатегорию"
+                  helperText="Выберите существующую категорию или создайте новую"
                   categories={categories}
                   selectedCategoryID={form.category_id}
                   parentID={formCategoryParentID}
@@ -230,6 +237,7 @@ export function ProductDialog({
                     })
                   }
                   onClear={onCategoryClear}
+                  onCreateCategory={onCreateCategory}
                 />
               </Grid>
             </Grid>
@@ -317,7 +325,6 @@ export function ProductDialog({
 
           <FormSection
             title="Медиа"
-            description="Изображение загружается в Cloudinary и автоматически сохраняется в товаре."
           >
             <Grid container spacing={2}>
               <Grid size={12}>
@@ -384,7 +391,14 @@ export function ProductDialog({
         </Stack>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, py: 2, borderTop: 1, borderColor: 'divider' }}>
+      <DialogActions
+        sx={{
+          px: 3,
+          py: 2,
+          borderTop: 1,
+          borderColor: 'divider',
+        }}
+      >
         <Button onClick={onClose} disabled={submitting || imageUploading}>
           Отмена
         </Button>

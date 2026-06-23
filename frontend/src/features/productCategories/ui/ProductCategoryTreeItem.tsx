@@ -4,6 +4,7 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRightRounded';
 
 import type { ProductCategory } from '../model/types';
@@ -13,6 +14,8 @@ type ProductCategoryTreeItemProps = {
   level: number;
   childrenCount: number;
   categoryNameByID: Record<string, string>;
+  isCollapsed: boolean;
+  onToggleCollapse: (categoryID: string) => void;
   onCreateChild: (category: ProductCategory) => void;
   onEdit: (category: ProductCategory) => void;
   onDelete: (category: ProductCategory) => void;
@@ -23,6 +26,8 @@ export function ProductCategoryTreeItem({
   level,
   childrenCount,
   categoryNameByID,
+  isCollapsed,
+  onToggleCollapse,
   onCreateChild,
   onEdit,
   onDelete,
@@ -30,6 +35,8 @@ export function ProductCategoryTreeItem({
   const parentName = category.parent_id
     ? categoryNameByID[category.parent_id] || 'Родитель не найден'
     : '';
+
+  const canCollapse = childrenCount > 0;
 
   return (
     <Box
@@ -61,15 +68,30 @@ export function ProductCategoryTreeItem({
           },
         }}
       >
-        {level > 0 && (
-          <KeyboardArrowRightRoundedIcon
-            sx={{
-              mr: 0.5,
-              fontSize: 18,
-              color: 'text.secondary',
-            }}
-          />
-        )}
+        <Box
+          sx={{
+            width: 28,
+            mr: 0.75,
+            flexShrink: 0,
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          {canCollapse && (
+            <Tooltip title={isCollapsed ? 'Развернуть' : 'Свернуть'}>
+              <IconButton
+                size="small"
+                onClick={() => onToggleCollapse(category.id)}
+              >
+                {isCollapsed ? (
+                  <KeyboardArrowRightRoundedIcon fontSize="small" />
+                ) : (
+                  <KeyboardArrowDownRoundedIcon fontSize="small" />
+                )}
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
 
         <Box
           sx={{
@@ -99,7 +121,12 @@ export function ProductCategoryTreeItem({
             {category.name}
           </Typography>
 
-          <Typography noWrap variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+          <Typography
+            noWrap
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: 'block' }}
+          >
             {category.description || 'Без описания'}
           </Typography>
 
@@ -177,6 +204,7 @@ export function ProductCategoryTreeItem({
             </Box>
           </Tooltip>
         )}
+
         {level < 2 && (
           <Tooltip title="Добавить подкатегорию">
             <IconButton size="small" onClick={() => onCreateChild(category)}>
@@ -184,6 +212,7 @@ export function ProductCategoryTreeItem({
             </IconButton>
           </Tooltip>
         )}
+
         <Tooltip title="Редактировать">
           <IconButton size="small" onClick={() => onEdit(category)}>
             <EditOutlinedIcon fontSize="small" />

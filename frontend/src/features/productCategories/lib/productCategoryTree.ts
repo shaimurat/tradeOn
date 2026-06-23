@@ -28,29 +28,53 @@ export function buildCategoryByID(categories: ProductCategory[]) {
 export function flattenCategoryTree(
   categoriesByParentID: Record<string, ProductCategory[]>,
   parentID = 'root',
-  level = 0
+  level = 0,
+  visited = new Set<string>()
 ): ProductCategoryTreeItem[] {
   const children = categoriesByParentID[parentID] || [];
 
-  return children.flatMap((category) => [
-    {
-      ...category,
-      level,
-    },
-    ...flattenCategoryTree(categoriesByParentID, category.id, level + 1),
-  ]);
+  return children.flatMap((category) => {
+    if (visited.has(category.id)) {
+      return [];
+    }
+
+    const nextVisited = new Set(visited);
+    nextVisited.add(category.id);
+
+    return [
+      {
+        ...category,
+        level,
+      },
+      ...flattenCategoryTree(
+        categoriesByParentID,
+        category.id,
+        level + 1,
+        nextVisited
+      ),
+    ];
+  });
 }
 
 export function getDescendantCategoryIDs(
   categoryID: string,
-  categoriesByParentID: Record<string, ProductCategory[]>
+  categoriesByParentID: Record<string, ProductCategory[]>,
+  visited = new Set<string>()
 ): string[] {
+  if (visited.has(categoryID)) {
+    return [];
+  }
+
+  visited.add(categoryID);
+
   const children = categoriesByParentID[categoryID] || [];
   const result: string[] = [];
 
   for (const child of children) {
     result.push(child.id);
-    result.push(...getDescendantCategoryIDs(child.id, categoriesByParentID));
+    result.push(
+      ...getDescendantCategoryIDs(child.id, categoriesByParentID, visited)
+    );
   }
 
   return result;
@@ -62,8 +86,15 @@ export function getCategoryLevel(
 ) {
   let level = 0;
   let parentID = category.parent_id;
+  const visited = new Set<string>();
 
   while (parentID) {
+    if (visited.has(parentID)) {
+      break;
+    }
+
+    visited.add(parentID);
+
     const parent = categoryByID[parentID];
 
     if (!parent) {
@@ -91,5 +122,15 @@ export function mergeCategoriesWithParents(
   categories: ProductCategory[],
   parentsByID: Record<string, ProductCategory>
 ) {
-  return [...categories, ...Object.values(parentsByID)];
+  const categoryByID = new Map<string, ProductCategory>();
+
+  for (const category of categories) {
+    categoryByID.set(category.id, category);
+  }
+
+  for (const parent of Object.values(parentsByID)) {
+    categoryByID.set(parent.id, parent);
+  }
+
+  return Array.from(categoryByID.values());
 }

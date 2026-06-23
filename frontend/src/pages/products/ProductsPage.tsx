@@ -3,9 +3,18 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { productCategoriesApi } from '../../features/productCategories/api/productCategoriesApi';
 import type { ProductCategory } from '../../features/productCategories/model/types';
+import { ProductCategoryDialog } from '../../features/productCategories/ui/ProductCategoryDialog';
+import {
+  buildCreateCategoryPayload,
+  type ProductCategoryDialogMode,
+  type ProductCategoryFormState,
+} from '../../features/productCategories/lib/productCategoryForm';
+import {
+  buildCategoriesByParentID,
+  flattenCategoryTree,
+} from '../../features/productCategories/lib/productCategoryTree';
 import { productsApi } from '../../features/products/api/productsApi';
 import type { Product, ProductStatus, StoreOption } from '../../features/products/model/types';
-import { parseApiError } from '../../shared/api/error';
 import { PRODUCT_LIMIT, statusLabelMap } from '../../features/products/lib/productConstants';
 import { formatPrice } from '../../features/products/lib/productFormatters';
 import {
@@ -21,9 +30,18 @@ import { ProductDialog } from '../../features/products/ui/ProductDialog';
 import { ProductsFiltersCard } from '../../features/products/ui/ProductsFiltersCard';
 import { ProductsListCard } from '../../features/products/ui/ProductsListCard';
 import { ProductsPageHeader } from '../../features/products/ui/ProductsPageHeader';
+
+import { parseApiError } from '../../shared/api/error';
+import { useNotification } from '../../shared/lib/useNotification';
 import { ConfirmDialog } from '../../shared/ui/ConfirmDialog';
 import { NotificationSnackbar } from '../../shared/ui/NotificationSnackbar';
-import { useNotification } from '../../shared/lib/useNotification';
+
+const initialCategoryFormState: ProductCategoryFormState = {
+  name: '',
+  description: '',
+  parent_id: '',
+};
+
 export function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [stores, setStores] = useState<StoreOption[]>([]);
@@ -51,15 +69,27 @@ export function ProductsPage() {
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const { notification, showSuccessNotification, showErrorNotification, closeNotification } =
-    useNotification();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductFormState>(initialFormState);
 
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [categoryDialogMode, setCategoryDialogMode] = useState<ProductCategoryDialogMode>('create');
+  const [editingCategory, setEditingCategory] = useState<ProductCategory | null>(null);
+  const [categoryForm, setCategoryForm] =
+    useState<ProductCategoryFormState>(initialCategoryFormState);
+  const [categorySubmitting, setCategorySubmitting] = useState(false);
+
+  const { notification, showSuccessNotification, showErrorNotification, closeNotification } =
+    useNotification();
+
   const selectedStore = useMemo(() => {
     return stores.find((store) => store.id === selectedStoreID);
   }, [stores, selectedStoreID]);
+
+  const selectedDialogStore = useMemo(() => {
+    return stores.find((store) => store.id === form.store_id);
+  }, [stores, form.store_id]);
 
   const totalPages = useMemo(() => {
     return Math.max(1, Math.ceil(count / PRODUCT_LIMIT));
@@ -68,6 +98,14 @@ export function ProductsPage() {
   const categoryNameByID = useMemo(() => {
     return buildCategoryNameMap(categories);
   }, [categories]);
+
+  const categoriesByParentID = useMemo(() => {
+    return buildCategoriesByParentID(categories);
+  }, [categories]);
+
+  const categoryParentOptions = useMemo(() => {
+    return flattenCategoryTree(categoriesByParentID);
+  }, [categoriesByParentID]);
 
   const hasActiveFilters = Boolean(search.trim() || status || categoryID || priceFrom || priceTo);
 
@@ -99,6 +137,13 @@ export function ProductsPage() {
 
   const updateForm = (patch: Partial<ProductFormState>) => {
     setForm((prev) => ({
+      ...prev,
+      ...patch,
+    }));
+  };
+
+  const updateCategoryForm = (patch: Partial<ProductCategoryFormState>) => {
+    setCategoryForm((prev) => ({
       ...prev,
       ...patch,
     }));
@@ -373,6 +418,79 @@ export function ProductsPage() {
     }
   };
 
+  const handleOpenCreateCategoryDialog = (parentID: string | null) => {
+    if (!form.store_id) {
+      showErrorNotification('Сначала выберите магазин');
+      return;
+    }
+
+    setCategoryDialogMode('create');
+    setEditingCategory(null);
+
+    setCategoryForm({
+      ...initialCategoryFormState,
+      parent_id: parentID ?? '',
+    });
+
+    setCategoryDialogOpen(true);
+  };
+
+  const handleCloseCategoryDialog = () => {
+    if (categorySubmitting) {
+      return;
+    }
+
+    setCategoryDialogOpen(false);
+    setEditingCategory(null);
+    setCategoryForm(initialCategoryFormState);
+  };
+
+  const validateCategoryForm = () => {
+    if (!form.store_id.trim()) {
+      showErrorNotification('Выберите магазин');
+      return false;
+    }
+
+    if (!categoryForm.name.trim()) {
+      showErrorNotification('Введите название категории');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleCreateCategorySubmit = async () => {
+    if (!validateCategoryForm()) {
+      return;
+    }
+
+    try {
+      setCategorySubmitting(true);
+
+      const createdCategory = await productCategoriesApi.create(
+        buildCreateCategoryPayload(categoryForm, form.store_id)
+      );
+
+      showSuccessNotification('Категория успешно создана');
+
+      await fetchCategories(form.store_id);
+
+      updateForm({
+        category_id: createdCategory.id,
+      });
+
+      setFormCategoryParentID(createdCategory.parent_id || null);
+
+      setCategoryDialogOpen(false);
+      setEditingCategory(null);
+      setCategoryForm(initialCategoryFormState);
+    } catch (error) {
+      showErrorNotification(parseApiError(error).message);
+    } finally {
+      setCategorySubmitting(false);
+    }
+  };
+
   return (
     <>
       <Stack spacing={3}>
@@ -440,6 +558,20 @@ export function ProductsPage() {
           onCategoryParentChange={setFormCategoryParentID}
           onCategoryPathChange={setFormCategoryPath}
           onCategoryClear={handleDialogCategoryClear}
+          onCreateCategory={handleOpenCreateCategoryDialog}
+        />
+
+        <ProductCategoryDialog
+          open={categoryDialogOpen}
+          mode={categoryDialogMode}
+          editingCategory={editingCategory}
+          form={categoryForm}
+          selectedStore={selectedDialogStore}
+          parentOptions={categoryParentOptions}
+          submitting={categorySubmitting}
+          onClose={handleCloseCategoryDialog}
+          onSubmit={handleCreateCategorySubmit}
+          onFormChange={updateCategoryForm}
         />
       </Stack>
 

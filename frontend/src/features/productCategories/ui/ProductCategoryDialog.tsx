@@ -45,6 +45,22 @@ export function ProductCategoryDialog({
 }: ProductCategoryDialogProps) {
   const isEdit = mode === 'edit';
 
+  const availableParentOptions = parentOptions.filter((category) => {
+    if (category.level >= 2) {
+      return false;
+    }
+
+    if (!editingCategory) {
+      return true;
+    }
+
+    if (category.id === editingCategory.id) {
+      return false;
+    }
+
+    return category.parent_id !== editingCategory.id;
+  });
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle sx={{ fontWeight: 900 }}>
@@ -65,7 +81,8 @@ export function ProductCategoryDialog({
 
         {editingCategory && (
           <Alert severity="warning">
-            Изменения применятся к категории: <strong>{editingCategory.name}</strong>
+            Изменения применятся к категории:{' '}
+            <strong>{editingCategory.name}</strong>
           </Alert>
         )}
 
@@ -80,7 +97,9 @@ export function ProductCategoryDialog({
         <TextField
           label="Описание"
           value={form.description}
-          onChange={(event) => onFormChange({ description: event.target.value })}
+          onChange={(event) =>
+            onFormChange({ description: event.target.value })
+          }
           fullWidth
           multiline
           minRows={3}
@@ -96,13 +115,11 @@ export function ProductCategoryDialog({
         >
           <MenuItem value="">Без родителя</MenuItem>
 
-          {parentOptions
-            .filter((category) => category.level < 2)
-            .map((category) => (
-              <MenuItem key={category.id} value={category.id}>
-                {'-'.repeat(category.level)} {category.name}
-              </MenuItem>
-            ))}
+          {availableParentOptions.map((category) => (
+            <MenuItem key={category.id} value={category.id}>
+              {'-'.repeat(category.level)} {category.name}
+            </MenuItem>
+          ))}
         </TextField>
       </DialogContent>
 
@@ -111,8 +128,18 @@ export function ProductCategoryDialog({
           Отмена
         </Button>
 
-        <Button variant="contained" disabled={submitting || !form.name.trim()} onClick={onSubmit}>
-          {submitting ? <CircularProgress size={20} /> : isEdit ? 'Сохранить' : 'Создать'}
+        <Button
+          variant="contained"
+          disabled={submitting || !form.name.trim()}
+          onClick={onSubmit}
+        >
+          {submitting ? (
+            <CircularProgress size={20} />
+          ) : isEdit ? (
+            'Сохранить'
+          ) : (
+            'Создать'
+          )}
         </Button>
       </DialogActions>
     </Dialog>
