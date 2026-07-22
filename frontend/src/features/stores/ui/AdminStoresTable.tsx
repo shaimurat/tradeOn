@@ -19,6 +19,7 @@ type AdminStoresTableProps = {
   totalCount: number;
   onPageChange: (page: number) => void;
   onLimitChange: (limit: number) => void;
+  onSelect: (store: Store) => void;
   onEdit: (store: Store) => void;
   onDelete: (store: Store) => void;
 };
@@ -31,6 +32,7 @@ export function AdminStoresTable({
   totalCount,
   onPageChange,
   onLimitChange,
+  onSelect,
   onEdit,
   onDelete,
 }: AdminStoresTableProps) {
@@ -56,7 +58,9 @@ export function AdminStoresTable({
               <TableCell>Контакты</TableCell>
               <TableCell>Статус</TableCell>
               <TableCell>Создан</TableCell>
-              <TableCell align="right">Действия</TableCell>
+              <TableCell align="center" sx={{ width: 152, pr: 3 }}>
+                Действия
+              </TableCell>
             </TableRow>
           </TableHead>
 
@@ -98,7 +102,9 @@ export function AdminStoresTable({
               <TableRow
                 key={store.id}
                 hover
+                onClick={() => onSelect(store)}
                 sx={{
+                  cursor: 'pointer',
                   '&:last-child td': {
                     borderBottom: 0,
                   },
@@ -187,8 +193,17 @@ export function AdminStoresTable({
                   <Typography variant="body2">{formatStoreDate(store.created_at)}</Typography>
                 </TableCell>
 
-                <TableCell align="right">
-                  <StoreActions store={store} onEdit={onEdit} onDelete={onDelete} />
+                <TableCell
+                  align="center"
+                  onClick={(event) => event.stopPropagation()}
+                  sx={{ width: 152, pr: 3 }}
+                >
+                  <StoreActions
+                    store={store}
+                    onView={onSelect}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                  />
                 </TableCell>
               </TableRow>
             ))}

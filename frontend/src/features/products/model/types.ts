@@ -74,6 +74,7 @@ export type ProductsListResponse = {
 export type StoreOption = {
   id: string;
   name: string;
+  slug: string;
   seller_id: string;
 };
 

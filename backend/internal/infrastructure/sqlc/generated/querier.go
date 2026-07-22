@@ -15,16 +15,28 @@ type Querier interface {
 	CountProductsList(ctx context.Context, arg CountProductsListParams) (int64, error)
 	CountStoresList(ctx context.Context, arg CountStoresListParams) (int64, error)
 	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
+	CreateProductAttribute(ctx context.Context, arg CreateProductAttributeParams) (ProductAttribute, error)
+	CreateProductAttributeOption(ctx context.Context, arg CreateProductAttributeOptionParams) (ProductAttributeOption, error)
+	CreateProductAttributeOptions(ctx context.Context, arg CreateProductAttributeOptionsParams) ([]ProductAttributeOption, error)
+	CreateProductAttributeValue(ctx context.Context, arg CreateProductAttributeValueParams) (ProductAttributeValue, error)
+	CreateProductAttributeValues(ctx context.Context, arg CreateProductAttributeValuesParams) ([]ProductAttributeValue, error)
+	CreateProductAttributes(ctx context.Context, arg CreateProductAttributesParams) ([]ProductAttribute, error)
 	CreateProductCategory(ctx context.Context, arg CreateProductCategoryParams) (CreateProductCategoryRow, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	CreateStore(ctx context.Context, arg CreateStoreParams) (Store, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteExpiredRefreshTokens(ctx context.Context) error
 	DeleteProduct(ctx context.Context, id pgtype.UUID) error
+	DeleteProductAttribute(ctx context.Context, id pgtype.UUID) error
+	DeleteProductAttributeOption(ctx context.Context, id pgtype.UUID) error
+	DeleteProductAttributeValue(ctx context.Context, id pgtype.UUID) error
 	DeleteProductCategory(ctx context.Context, id pgtype.UUID) error
 	DeleteStore(ctx context.Context, id pgtype.UUID) error
 	DeleteUser(ctx context.Context, id pgtype.UUID) error
 	ExistsUserByEmail(ctx context.Context, email string) (bool, error)
+	GetProductAttributeByID(ctx context.Context, id pgtype.UUID) (ProductAttribute, error)
+	GetProductAttributeOptionByID(ctx context.Context, id pgtype.UUID) (ProductAttributeOption, error)
+	GetProductAttributeValueByID(ctx context.Context, id pgtype.UUID) (ProductAttributeValue, error)
 	GetProductByID(ctx context.Context, id pgtype.UUID) (Product, error)
 	GetProductBySlug(ctx context.Context, arg GetProductBySlugParams) (Product, error)
 	GetProductCategoryByID(ctx context.Context, id pgtype.UUID) (GetProductCategoryByIDRow, error)
@@ -37,12 +49,18 @@ type Querier interface {
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	GetUsersList(ctx context.Context, arg GetUsersListParams) ([]User, error)
 	ListActiveRefreshTokensByUserID(ctx context.Context, userID pgtype.UUID) ([]RefreshToken, error)
+	ListProductAttributeOptionsByAttributeID(ctx context.Context, productAttributeID pgtype.UUID) ([]ProductAttributeOption, error)
+	ListProductAttributeValuesByProductID(ctx context.Context, productID pgtype.UUID) ([]ProductAttributeValue, error)
+	ListProductAttributesByStoreID(ctx context.Context, storeID pgtype.UUID) ([]ProductAttribute, error)
 	ListProductCategories(ctx context.Context, arg ListProductCategoriesParams) ([]ListProductCategoriesRow, error)
 	PatchProduct(ctx context.Context, arg PatchProductParams) (Product, error)
 	PatchStore(ctx context.Context, arg PatchStoreParams) (Store, error)
 	PatchUser(ctx context.Context, arg PatchUserParams) (PatchUserRow, error)
 	RevokeAllRefreshTokensByUserID(ctx context.Context, userID pgtype.UUID) error
 	RevokeRefreshTokenByHash(ctx context.Context, refreshTokenHash string) error
+	UpdateProductAttribute(ctx context.Context, arg UpdateProductAttributeParams) (ProductAttribute, error)
+	UpdateProductAttributeOption(ctx context.Context, arg UpdateProductAttributeOptionParams) (ProductAttributeOption, error)
+	UpdateProductAttributeValue(ctx context.Context, arg UpdateProductAttributeValueParams) (ProductAttributeValue, error)
 	UpdateProductCategory(ctx context.Context, arg UpdateProductCategoryParams) (UpdateProductCategoryRow, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	UpdateUserLastLoginByEmail(ctx context.Context, email string) error

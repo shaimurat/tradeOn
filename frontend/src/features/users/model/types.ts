@@ -47,3 +47,24 @@ export type ListUserResponse = {
   users: User[];
   count: number;
 };
+
+export type CreateUserRequest = {
+  role: UserRole;
+  email: string;
+  username: string;
+  password: string;
+  avatar_url?: string | null;
+};
+
+export type PatchUserRequest = {
+  role?: UserRole;
+  email?: string;
+  username?: string;
+  password?: string;
+  avatar_url?: string | null;
+  status?: UserStatus;
+};
+
+export type UserResponse = {
+  user: User;
+};

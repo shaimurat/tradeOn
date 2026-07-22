@@ -1,0 +1,27 @@
+# Environment variables and local overrides
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# IDE and editor settings
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# Go build and test artifacts
+/backend/main
+/backend/bin/
+*.test
+coverage.out
+coverage.html
+
+# Temporary files
+tmp/
+*.tmp

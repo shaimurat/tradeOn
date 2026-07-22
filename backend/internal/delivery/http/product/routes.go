@@ -20,10 +20,10 @@ func RegisterRoutes(
 	products.GET("/:id", productHandler.GetByID)
 	products.GET("/store/:store_id/slug/:slug", productHandler.GetBySlug)
 
-	// Seller routes
+	// Admin and seller routes
 	sellerProducts := products
 	sellerProducts.Use(middleware.AuthRequire())
-	sellerProducts.Use(middleware.RequireRole(models.RoleSeller))
+	sellerProducts.Use(middleware.RequireRole(models.RoleAdmin, models.RoleSeller))
 	{
 		sellerProducts.POST("/", productHandler.Create)
 		sellerProducts.PATCH("/:id", productHandler.Update)

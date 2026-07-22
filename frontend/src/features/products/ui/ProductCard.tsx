@@ -3,7 +3,6 @@ import {
   Card,
   CardContent,
   Chip,
-  Divider,
   IconButton,
   Stack,
   Tooltip,
@@ -21,13 +20,30 @@ import { formatPrice } from '../lib/productFormatters';
 type ProductCardProps = {
   product: Product;
   categoryName?: string;
+  onSelect: (product: Product) => void;
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
 };
 
-export function ProductCard({ product, categoryName, onEdit, onDelete }: ProductCardProps) {
+export function ProductCard({
+  product,
+  categoryName,
+  onSelect,
+  onEdit,
+  onDelete,
+}: ProductCardProps) {
   return (
     <Card
+      role="link"
+      tabIndex={0}
+      aria-label={`Открыть товар ${product.name}`}
+      onClick={() => onSelect(product)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onSelect(product);
+        }
+      }}
       variant="outlined"
       sx={{
         height: '100%',
@@ -35,6 +51,7 @@ export function ProductCard({ product, categoryName, onEdit, onDelete }: Product
         display: 'flex',
         flexDirection: 'column',
         transition: '0.2s ease',
+        cursor: 'pointer',
         '&:hover': {
           boxShadow: 3,
           transform: 'translateY(-2px)',
@@ -45,10 +62,14 @@ export function ProductCard({ product, categoryName, onEdit, onDelete }: Product
         <Box
           sx={{
             width: '100%',
-            height: 130,
+            height: {
+              xs: 180,
+              sm: 170,
+              lg: 185,
+            },
             borderRadius: 2,
             overflow: 'hidden',
-            bgcolor: 'grey.100',
+            bgcolor: 'common.white',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -94,7 +115,12 @@ export function ProductCard({ product, categoryName, onEdit, onDelete }: Product
         >
           <StatusChip status={product.status} />
 
-          <Stack direction="row" spacing={0.25}>
+          <Stack
+            direction="row"
+            spacing={0.25}
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
             <Tooltip title="Редактировать">
               <IconButton size="small" onClick={() => onEdit(product)}>
                 <EditOutlinedIcon sx={{ fontSize: 18 }} />
@@ -131,7 +157,7 @@ export function ProductCard({ product, categoryName, onEdit, onDelete }: Product
             sx={{ display: 'block', mt: 0.25 }}
             noWrap
           >
-            {product.slug}
+            {product.description || 'Описание отсутствует'}
           </Typography>
         </Box>
 
@@ -154,8 +180,6 @@ export function ProductCard({ product, categoryName, onEdit, onDelete }: Product
             />
           )}
         </Box>
-
-        <Divider sx={{ my: 0.25 }} />
 
         <Stack
           direction="row"

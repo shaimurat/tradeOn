@@ -9,6 +9,7 @@ const SIDEBAR_WIDTH = 256;
 
 export function DashboardLayout() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
 
   return (
     <Box
@@ -22,6 +23,7 @@ export function DashboardLayout() {
       <Sidebar
         width={SIDEBAR_WIDTH}
         open={mobileSidebarOpen}
+        desktopOpen={desktopSidebarOpen}
         onClose={() => setMobileSidebarOpen(false)}
       />
 
@@ -33,7 +35,16 @@ export function DashboardLayout() {
           flexDirection: 'column',
         }}
       >
-        <Header onOpenSidebar={() => setMobileSidebarOpen(true)} />
+        <Header
+          sidebarOpen={desktopSidebarOpen}
+          onToggleSidebar={() => {
+            if (window.matchMedia('(min-width: 900px)').matches) {
+              setDesktopSidebarOpen((open) => !open);
+            } else {
+              setMobileSidebarOpen(true);
+            }
+          }}
+        />
 
         <Box
           component="main"

@@ -38,13 +38,13 @@ export const navigationItems: NavigationItem[] = [
     label: 'Категории',
     path: '/categories',
     icon: CategoryOutlinedIcon,
-    roles: ['admin', 'seller'],
+    roles: ['seller'],
   },
   {
     label: 'Заказы',
     path: '/orders',
     icon: ShoppingCartOutlinedIcon,
-    roles: ['admin', 'seller'],
+    roles: ['seller'],
   },
   {
     label: 'Пользователи',

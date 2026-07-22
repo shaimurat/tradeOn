@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { Alert, Box, CircularProgress, Grid, Stack } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 import { storesApi } from '../../features/stores/api/storesApi';
 import { StoreCard } from '../../features/stores/ui/StoreCard';
@@ -27,6 +28,7 @@ const DEFAULT_FILTERS: StoreFiltersValue = {
 };
 
 export function SellerStoresPage() {
+  const navigate = useNavigate();
   const [stores, setStores] = useState<Store[]>([]);
   const [filters, setFilters] = useState<StoreFiltersValue>(DEFAULT_FILTERS);
 
@@ -90,8 +92,6 @@ export function SellerStoresPage() {
     setFormOpen(false);
     setEditingStore(null);
   };
-
-
 
   const handleDeleteStore = async () => {
     if (!deletingStore) {
@@ -165,6 +165,9 @@ export function SellerStoresPage() {
             <Grid key={store.id} size={{ xs: 12, sm: 6, lg: 4 }}>
               <StoreCard
                 store={store}
+                onSelect={(store) => {
+                  navigate(`/products?store=${encodeURIComponent(store.slug)}`);
+                }}
                 onEdit={(store) => {
                   setEditingStore(store);
                   setFormOpen(true);
@@ -177,44 +180,44 @@ export function SellerStoresPage() {
       )}
 
       {editingStore ? (
-  <StoreFormDialog
-    open={formOpen}
-    mode="edit"
-    role="seller"
-    store={editingStore}
-    onClose={handleCloseForm}
-    onSubmit={async (payload) => {
-      try {
-        await storesApi.sellerPatchStore(editingStore.id, payload);
-        showSuccessNotification('Магазин успешно обновлен');
+        <StoreFormDialog
+          open={formOpen}
+          mode="edit"
+          role="seller"
+          store={editingStore}
+          onClose={handleCloseForm}
+          onSubmit={async (payload) => {
+            try {
+              await storesApi.sellerPatchStore(editingStore.id, payload);
+              showSuccessNotification('Магазин успешно обновлен');
 
-        await loadStores();
-      } catch (err) {
-        showErrorNotification(parseApiError(err, 'Не удалось обновить магазин').message);
-        throw err;
-      }
-    }}
-  />
-) : (
-  <StoreFormDialog
-    open={formOpen}
-    mode="create"
-    role="seller"
-    store={null}
-    onClose={handleCloseForm}
-    onSubmit={async (payload) => {
-      try {
-        await storesApi.sellerCreateStore(payload);
-        showSuccessNotification('Магазин успешно создан');
+              await loadStores();
+            } catch (err) {
+              showErrorNotification(parseApiError(err, 'Не удалось обновить магазин').message);
+              throw err;
+            }
+          }}
+        />
+      ) : (
+        <StoreFormDialog
+          open={formOpen}
+          mode="create"
+          role="seller"
+          store={null}
+          onClose={handleCloseForm}
+          onSubmit={async (payload) => {
+            try {
+              await storesApi.sellerCreateStore(payload);
+              showSuccessNotification('Магазин успешно создан');
 
-        await loadStores();
-      } catch (err) {
-        showErrorNotification(parseApiError(err, 'Не удалось создать магазин').message);
-        throw err;
-      }
-    }}
-  />
-)}
+              await loadStores();
+            } catch (err) {
+              showErrorNotification(parseApiError(err, 'Не удалось создать магазин').message);
+              throw err;
+            }
+          }}
+        />
+      )}
 
       <StoreDeleteDialog
         store={deletingStore}

@@ -1,6 +1,8 @@
-import { Stack } from '@mui/material';
+import { Card, Stack } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import { useAuthStore } from '../../features/auth/model/authStore';
 import { productCategoriesApi } from '../../features/productCategories/api/productCategoriesApi';
 import type { ProductCategory } from '../../features/productCategories/model/types';
 import { ProductCategoryDialog } from '../../features/productCategories/ui/ProductCategoryDialog';
@@ -14,6 +16,7 @@ import {
   flattenCategoryTree,
 } from '../../features/productCategories/lib/productCategoryTree';
 import { productsApi } from '../../features/products/api/productsApi';
+import { storesApi } from '../../features/stores/api/storesApi';
 import type { Product, ProductStatus, StoreOption } from '../../features/products/model/types';
 import { PRODUCT_LIMIT, statusLabelMap } from '../../features/products/lib/productConstants';
 import { formatPrice } from '../../features/products/lib/productFormatters';
@@ -43,6 +46,10 @@ const initialCategoryFormState: ProductCategoryFormState = {
 };
 
 export function ProductsPage() {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedStoreSlug = searchParams.get('store') ?? '';
+  const userRole = useAuthStore((state) => state.user?.role);
   const [products, setProducts] = useState<Product[]>([]);
   const [stores, setStores] = useState<StoreOption[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
@@ -82,10 +89,6 @@ export function ProductsPage() {
 
   const { notification, showSuccessNotification, showErrorNotification, closeNotification } =
     useNotification();
-
-  const selectedStore = useMemo(() => {
-    return stores.find((store) => store.id === selectedStoreID);
-  }, [stores, selectedStoreID]);
 
   const selectedDialogStore = useMemo(() => {
     return stores.find((store) => store.id === form.store_id);
@@ -180,12 +183,28 @@ export function ProductsPage() {
     try {
       setStoresLoading(true);
 
-      const data = await productsApi.getSellerStores();
+      const data = await storesApi.getMyStores({
+        limit: 100,
+      });
+      let availableStores = data.stores;
 
-      setStores(data.stores);
+      if (
+        userRole === 'admin' &&
+        requestedStoreSlug &&
+        !availableStores.some((store) => store.slug === requestedStoreSlug)
+      ) {
+        const requestedStore = await storesApi.getStoreBySlug(requestedStoreSlug);
+        availableStores = [requestedStore, ...availableStores];
+      }
 
-      if (!selectedStoreID && data.stores.length > 0) {
-        setSelectedStoreID(data.stores[0].id);
+      setStores(availableStores);
+
+      if (!selectedStoreID && availableStores.length > 0) {
+        const requestedStore = availableStores.find((store) => store.slug === requestedStoreSlug);
+        const initialStore = requestedStore ?? availableStores[0];
+
+        setSelectedStoreID(initialStore.id);
+        setSearchParams({ store: initialStore.slug }, { replace: true });
       }
     } catch (error) {
       showErrorNotification(parseApiError(error).message);
@@ -219,12 +238,14 @@ export function ProductsPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchStores();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (!selectedStoreID) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCategories([]);
       resetFilterCategoryState();
       return;
@@ -236,6 +257,7 @@ export function ProductsPage() {
   }, [selectedStoreID]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStoreID, search, status, categoryID, priceFrom, priceTo, page]);
@@ -257,6 +279,8 @@ export function ProductsPage() {
 
   const handleStoreFilterChange = (storeID: string) => {
     setSelectedStoreID(storeID);
+    const store = stores.find((item) => item.id === storeID);
+    setSearchParams(store ? { store: store.slug } : {});
     setPage(1);
   };
 
@@ -301,6 +325,17 @@ export function ProductsPage() {
     setFormCategoryParentID(product.category_id ?? null);
     setFormCategoryPath([]);
     setDialogOpen(true);
+  };
+
+  const handleOpenProduct = (product: Product) => {
+    const store = stores.find((item) => item.id === product.store_id);
+
+    if (!store) {
+      showErrorNotification('Не удалось определить магазин товара');
+      return;
+    }
+
+    navigate(`/products/${encodeURIComponent(store.slug)}/${encodeURIComponent(product.slug)}`);
   };
 
   const handleCloseDialog = () => {
@@ -500,46 +535,48 @@ export function ProductsPage() {
           onCreate={handleOpenCreateDialog}
         />
 
-        <ProductsFiltersCard
-          stores={stores}
-          categories={categories}
-          selectedStoreID={selectedStoreID}
-          search={searchDraft}
-          status={status}
-          categoryID={categoryID}
-          categoryParentID={filterCategoryParentID}
-          categoryPath={filterCategoryPath}
-          priceFrom={priceFrom}
-          priceTo={priceTo}
-          storesLoading={storesLoading}
-          categoriesLoading={categoriesLoading}
-          activeFilterLabels={activeFilterLabels}
-          hasActiveFilters={hasActiveFilters}
-          onStoreChange={handleStoreFilterChange}
-          onSearchChange={setSearchDraft}
-          onSearchSubmit={handleSearchSubmit}
-          onStatusChange={handleStatusFilterChange}
-          onCategoryChange={handleCategoryFilterChange}
-          onCategoryParentChange={setFilterCategoryParentID}
-          onCategoryPathChange={setFilterCategoryPath}
-          onCategoryClear={handleCategoryFilterClear}
-          onPriceFromChange={handlePriceFromChange}
-          onPriceToChange={handlePriceToChange}
-          onResetFilters={handleResetFilters}
-        />
+        <Card variant="outlined" sx={{ borderRadius: 3, overflow: 'hidden' }}>
+          <ProductsFiltersCard
+            stores={stores}
+            categories={categories}
+            selectedStoreID={selectedStoreID}
+            search={searchDraft}
+            status={status}
+            categoryID={categoryID}
+            categoryParentID={filterCategoryParentID}
+            categoryPath={filterCategoryPath}
+            priceFrom={priceFrom}
+            priceTo={priceTo}
+            storesLoading={storesLoading}
+            categoriesLoading={categoriesLoading}
+            activeFilterLabels={activeFilterLabels}
+            hasActiveFilters={hasActiveFilters}
+            onStoreChange={handleStoreFilterChange}
+            onSearchChange={setSearchDraft}
+            onSearchSubmit={handleSearchSubmit}
+            onStatusChange={handleStatusFilterChange}
+            onCategoryChange={handleCategoryFilterChange}
+            onCategoryParentChange={setFilterCategoryParentID}
+            onCategoryPathChange={setFilterCategoryPath}
+            onCategoryClear={handleCategoryFilterClear}
+            onPriceFromChange={handlePriceFromChange}
+            onPriceToChange={handlePriceToChange}
+            onResetFilters={handleResetFilters}
+          />
 
-        <ProductsListCard
-          products={products}
-          loading={loading}
-          count={count}
-          page={page}
-          totalPages={totalPages}
-          selectedStore={selectedStore}
-          categoryNameByID={categoryNameByID}
-          onPageChange={setPage}
-          onEdit={handleOpenEditDialog}
-          onDelete={handleOpenDeleteDialog}
-        />
+          <ProductsListCard
+            products={products}
+            loading={loading}
+            count={count}
+            page={page}
+            totalPages={totalPages}
+            categoryNameByID={categoryNameByID}
+            onPageChange={setPage}
+            onSelect={handleOpenProduct}
+            onEdit={handleOpenEditDialog}
+            onDelete={handleOpenDeleteDialog}
+          />
+        </Card>
 
         <ProductDialog
           open={dialogOpen}

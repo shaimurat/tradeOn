@@ -22,11 +22,24 @@ type ProductAttribute struct {
 	Unit       *string
 }
 
+type PatchProductAttributeParams struct {
+	Name       *string
+	Code       *string
+	IsRequired *bool
+	IsFilter   *bool
+	Type       *AttributeType
+	Unit       *string
+}
+
 type ProductAttributeOption struct {
 	ID                 string
 	ProductAttributeID string
 	Value              string
 	Position           int
+}
+type PatchProductAttributeOptionParams struct {
+	Value    *string
+	Position *int
 }
 
 type ProductAttributeValue struct {
@@ -34,6 +47,13 @@ type ProductAttributeValue struct {
 	ProductID          string
 	ProductAttributeID string
 
+	ValueText   *string
+	ValueNumber *float64
+	ValueBool   *bool
+	OptionID    *string
+}
+
+type PatchProductAttributeValueParams struct {
 	ValueText   *string
 	ValueNumber *float64
 	ValueBool   *bool

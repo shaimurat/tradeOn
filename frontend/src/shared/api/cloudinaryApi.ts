@@ -16,15 +16,13 @@ export type CloudinaryUploadResponse = {
 const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
-if (!CLOUDINARY_CLOUD_NAME) {
-  throw new Error('VITE_CLOUDINARY_CLOUD_NAME is not defined');
-}
-
-if (!CLOUDINARY_UPLOAD_PRESET) {
-  throw new Error('VITE_CLOUDINARY_UPLOAD_PRESET is not defined');
-}
-
 const getCloudinaryUploadUrl = (resourceType: CloudinaryResourceType = 'image') => {
+  if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
+    throw new Error(
+      'Cloudinary is not configured. Define VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET.'
+    );
+  }
+
   return `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
 };
 
@@ -36,6 +34,7 @@ export const cloudinaryApi = {
       resourceType?: CloudinaryResourceType;
     }
   ) => {
+    const uploadUrl = getCloudinaryUploadUrl(options?.resourceType ?? 'image');
     const formData = new FormData();
 
     formData.append('file', file);
@@ -45,7 +44,7 @@ export const cloudinaryApi = {
       formData.append('folder', options.folder);
     }
 
-    const response = await fetch(getCloudinaryUploadUrl(options?.resourceType ?? 'image'), {
+    const response = await fetch(uploadUrl, {
       method: 'POST',
       body: formData,
     });

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	app2 "tradeOn/internal/app"
 	"tradeOn/internal/config"
 
@@ -18,9 +17,9 @@ import (
 // @in header
 // @name Authorization
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	// In Docker the configuration is supplied through environment variables,
+	// while local development can still use backend/.env.
+	_ = godotenv.Load()
 	cfg := config.LoadConfig()
 	app := app2.NewApp(cfg)
 	app.Run()

@@ -1,0 +1,68 @@
+name: tradeon
+
+services:
+  database:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tradeon}
+      POSTGRES_USER: ${POSTGRES_USER:-tradeon}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tradeon}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5433"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  migrate:
+    build:
+      context: ./backend
+    command: ["migrate"]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-tradeon}:${POSTGRES_PASSWORD:-tradeon}@database:5432/${POSTGRES_DB:-tradeon}?sslmode=disable
+      MIGRATIONS_DIR: /app/migrations
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      PORT: 8080
+      DATABASE_URL: postgresql://${POSTGRES_USER:-tradeon}:${POSTGRES_PASSWORD:-tradeon}@database:5432/${POSTGRES_DB:-tradeon}?sslmode=disable
+      ENVIRONMENT: ${ENVIRONMENT:-dev}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-me-access-secret}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-refresh-secret}
+      JWT_ACCESS_EXPIRES_MIN: ${JWT_ACCESS_EXPIRES_MIN:-30}
+      JWT_REFRESH_EXPIRES_HOURS: ${JWT_REFRESH_EXPIRES_HOURS:-168}
+      ALLOWED_ORIGINS: http://localhost:${FRONTEND_PORT:-3000}
+      SWAGGER_HOST: localhost:${BACKEND_PORT:-8080}
+      SWAGGER_SCHEME: http
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: /api
+        VITE_CLOUDINARY_CLOUD_NAME: ${VITE_CLOUDINARY_CLOUD_NAME:-}
+        VITE_CLOUDINARY_UPLOAD_PRESET: ${VITE_CLOUDINARY_UPLOAD_PRESET:-}
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

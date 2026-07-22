@@ -18,6 +18,14 @@ export const productsApi = {
     return response.data;
   },
 
+  getProductBySlug: async (storeId: string, slug: string) => {
+    const response = await api.get<ProductResponse>(
+      `/products/store/${encodeURIComponent(storeId)}/slug/${encodeURIComponent(slug)}`
+    );
+
+    return response.data.product;
+  },
+
   createProduct: async (payload: CreateProductRequest) => {
     const response = await api.post<ProductResponse>('/products/', payload);
 

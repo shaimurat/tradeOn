@@ -18,7 +18,6 @@ type CategoryRowProps = {
   title: string;
   count?: number | null;
   active?: boolean;
-  selected?: boolean;
   hasChildren?: boolean;
   activeBg?: string;
   icon?: React.ReactNode;
@@ -30,7 +29,6 @@ function CategoryRow({
   title,
   count,
   active,
-  selected,
   hasChildren,
   activeBg = 'common.black',
   icon,
@@ -501,7 +499,6 @@ export function CategoryTreePicker({
               <CategoryRow
                 title={emptyValueLabel}
                 active={!hoveredRootID}
-                selected={false}
                 onMouseEnter={() => {
                   setHoveredRootID(null);
                   setHoveredSubcategoryID(null);
@@ -525,7 +522,6 @@ export function CategoryTreePicker({
                   title={category.name}
                   count={count}
                   active={isActive}
-                  selected={false}
                   hasChildren={hasChildren}
                   onMouseEnter={() => handleRootHover(category)}
                   onClick={() => handleRootClick(category)}
@@ -578,7 +574,6 @@ export function CategoryTreePicker({
                 <CategoryRow
                   title={`Все в ${hoveredRoot.name}`}
                   active={false}
-                  selected={false}
                   onMouseEnter={() => setHoveredSubcategoryID(null)}
                   onClick={() => handleRootClick(hoveredRoot)}
                 />
@@ -597,7 +592,6 @@ export function CategoryTreePicker({
                     title={category.name}
                     count={getCategoryCount(category)}
                     active={isActive}
-                    selected={false}
                     hasChildren={hasChildren}
                     onMouseEnter={() => handleSubcategoryHover(category)}
                     onClick={() => handleSubcategoryClick(category)}
@@ -648,7 +642,6 @@ export function CategoryTreePicker({
                 <CategoryRow
                   title={`Все в ${hoveredSubcategory.name}`}
                   active={false}
-                  selected={false}
                   onClick={() => handleSubcategoryClick(hoveredSubcategory)}
                 />
               )}
@@ -659,7 +652,6 @@ export function CategoryTreePicker({
                   title={category.name}
                   count={getCategoryCount(category)}
                   active={false}
-                  selected={false}
                   onClick={() => handleNestedSubcategoryClick(category)}
                 />
               ))}

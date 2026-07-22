@@ -13,13 +13,23 @@ import { ProtectedRoute } from './ProtectedRouter';
 import { GuestRoute } from './GuestRoute';
 import { RoleRoute } from './RoleRoute';
 import { DashboardLayout } from '../../shared/layout/DashboardLayout';
-import { ProductsPage } from '../../pages/products';
+import { ProductDetailsPage, ProductsPage } from '../../pages/products';
 import { ProductCategoriesPage } from '../../pages/productCategories/ProductCategoriesPage';
+import { UsersPage } from '../../pages/users';
+import { StorefrontPage, StorefrontProductPage } from '../../pages/storefront';
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <HomePage />,
+  },
+  {
+    path: '/shop/:storeSlug',
+    element: <StorefrontPage />,
+  },
+  {
+    path: '/shop/:storeSlug/:productSlug',
+    element: <StorefrontProductPage />,
   },
 
   {
@@ -62,23 +72,26 @@ const router = createBrowserRouter([
             ],
           },
 
-          // Позже добавишь, когда будут страницы:
-          // {
-          //   element: <RoleRoute allowedRoles={['admin']} />,
-          //   children: [
-          //     {
-          //       path: '/users',
-          //       element: <UsersPage />,
-          //     },
-          //   ],
-          // },
+          {
+            element: <RoleRoute allowedRoles={['admin']} />,
+            children: [
+              {
+                path: '/users',
+                element: <UsersPage />,
+              },
+            ],
+          },
 
           {
-            element: <RoleRoute allowedRoles={['seller']} />,
+            element: <RoleRoute allowedRoles={['admin', 'seller']} />,
             children: [
               {
                 path: '/products',
                 element: <ProductsPage />,
+              },
+              {
+                path: '/products/:storeSlug/:productSlug',
+                element: <ProductDetailsPage />,
               },
               // {
               //   path: '/orders',

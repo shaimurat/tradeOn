@@ -23,7 +23,7 @@ type UserResponse struct {
 }
 
 type ListUserRequest struct {
-	Role   *models.Role       `form:"role" binding:"omitempty,oneof=admin seller customer"`
+	Role   *models.Role       `form:"role" binding:"omitempty,oneof=admin seller client"`
 	Status *models.UserStatus `form:"status" binding:"omitempty,oneof=active inactive blocked"`
 	Search *string            `form:"search" binding:"omitempty,max=255"`
 }
@@ -34,7 +34,7 @@ type ListUserResponse struct {
 }
 
 type PatchUserRequest struct {
-	Role      *models.Role       `json:"role,omitempty" binding:"omitempty,oneof=admin seller customer"`
+	Role      *models.Role       `json:"role,omitempty" binding:"omitempty,oneof=admin seller client"`
 	Email     *string            `json:"email,omitempty" binding:"omitempty,email,max=255"`
 	Username  *string            `json:"username,omitempty" binding:"omitempty,min=3,max=100"`
 	Password  *string            `json:"password,omitempty" binding:"omitempty,min=8,max=72"`
@@ -43,7 +43,7 @@ type PatchUserRequest struct {
 }
 
 type CreateUserRequest struct {
-	Role      models.Role `json:"role" binding:"required,oneof=admin seller customer"`
+	Role      models.Role `json:"role" binding:"required,oneof=admin seller client"`
 	Email     string      `json:"email" binding:"required,email,max=255"`
 	Username  string      `json:"username" binding:"required,min=3,max=100"`
 	AvatarUrl *string     `json:"avatar_url,omitempty" binding:"omitempty,max=1000"`

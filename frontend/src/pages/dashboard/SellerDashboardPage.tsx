@@ -1,33 +1,97 @@
-import { Box, Card, CardContent, Grid, Stack, Typography } from '@mui/material';
-import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined';
+import AssignmentReturnOutlinedIcon from '@mui/icons-material/AssignmentReturnOutlined';
+import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
+import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
+import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
+import PercentOutlinedIcon from '@mui/icons-material/PercentOutlined';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
-import AttachMoneyOutlinedIcon from '@mui/icons-material/AttachMoneyOutlined';
+import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined';
+import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined';
+import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
+import { Box, Grid, Stack, Typography } from '@mui/material';
 
-const stats = [
+import { MetricCard } from '../../shared/ui/MetricCard';
+
+// TODO: заменить заглушки данными будущего endpoint аналитики продавца.
+const salesMetrics = [
+  {
+    label: 'Выручка',
+    value: '—',
+    helper: 'Оплаченные заказы за 30 дней',
+    icon: TrendingUpOutlinedIcon,
+  },
+  {
+    label: 'Заказы',
+    value: '—',
+    helper: 'Получено за последние 30 дней',
+    icon: ShoppingCartOutlinedIcon,
+  },
+  {
+    label: 'Средний чек',
+    value: '—',
+    helper: 'Средняя сумма оплаченного заказа',
+    icon: PaymentsOutlinedIcon,
+  },
+  {
+    label: 'Конверсия',
+    value: '—',
+    helper: 'Просмотры, завершившиеся заказом',
+    icon: PercentOutlinedIcon,
+  },
+];
+
+const quantityMetrics = [
   {
     label: 'Мои магазины',
-    value: '2',
-    helper: 'Ваши активные магазины',
+    value: '—',
+    helper: 'Магазины во всех статусах',
     icon: StorefrontOutlinedIcon,
   },
   {
     label: 'Мои товары',
-    value: '248',
-    helper: 'Товары в ваших магазинах',
+    value: '—',
+    helper: 'Товары во всех магазинах',
     icon: Inventory2OutlinedIcon,
   },
   {
-    label: 'Мои заказы',
-    value: '1 429',
-    helper: 'Заказы из ваших магазинов',
-    icon: ShoppingCartOutlinedIcon,
+    label: 'Категории',
+    value: '—',
+    helper: 'Категории товарного каталога',
+    icon: CategoryOutlinedIcon,
   },
   {
-    label: 'Доход',
-    value: '18 240 ₸',
-    helper: 'Выручка ваших магазинов',
-    icon: AttachMoneyOutlinedIcon,
+    label: 'Покупатели',
+    value: '—',
+    helper: 'Уникальные покупатели за всё время',
+    icon: GroupsOutlinedIcon,
+  },
+];
+
+const attentionMetrics = [
+  {
+    label: 'Активные товары',
+    value: '—',
+    helper: 'Опубликованы и доступны покупателям',
+    icon: Inventory2OutlinedIcon,
+  },
+  {
+    label: 'Заканчиваются',
+    value: '—',
+    helper: 'Товары с низким остатком',
+    icon: WarningAmberOutlinedIcon,
+  },
+  {
+    label: 'Ждут отправки',
+    value: '—',
+    helper: 'Оплаченные, но не отправленные',
+    icon: LocalShippingOutlinedIcon,
+  },
+  {
+    label: 'Возвраты',
+    value: '—',
+    helper: 'Запросы, требующие обработки',
+    icon: AssignmentReturnOutlinedIcon,
   },
 ];
 
@@ -36,64 +100,43 @@ export function SellerDashboardPage() {
     <Stack spacing={3}>
       <Box>
         <Typography variant="h2">Панель продавца</Typography>
-
         <Typography variant="body1" sx={{ mt: 0.25, color: 'text.secondary' }}>
-          Управляйте своими магазинами, товарами, заказами и продажами.
+          Продажи, эффективность каталога и задачи на сегодня.
         </Typography>
       </Box>
 
-      <Grid container spacing={2}>
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-
-          return (
-            <Grid key={stat.label} size={{ xs: 12, sm: 6, lg: 3 }}>
-              <Card sx={{ height: '100%' }}>
-                <CardContent sx={{ p: 2.5 }}>
-                  <Stack direction="row" sx={{ justifyContent: 'space-between', gap: 2 }}>
-                    <Box>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: 'text.secondary',
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        {stat.label}
-                      </Typography>
-
-                      <Typography variant="h1" sx={{ mt: 1, fontSize: '2rem' }}>
-                        {stat.value}
-                      </Typography>
-
-                      <Typography variant="body2" sx={{ mt: 0.75, color: 'text.secondary' }}>
-                        {stat.helper}
-                      </Typography>
-                    </Box>
-
-                    <Box
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 2,
-                        bgcolor: 'secondary.main',
-                        color: 'text.secondary',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Icon sx={{ fontSize: 19 }} />
-                    </Box>
-                  </Stack>
-                </CardContent>
-              </Card>
+      <Stack spacing={1.5}>
+        <Typography variant="h3">Количество</Typography>
+        <Grid container spacing={2}>
+          {quantityMetrics.map((metric) => (
+            <Grid key={metric.label} size={{ xs: 12, sm: 6, lg: 3 }}>
+              <MetricCard {...metric} />
             </Grid>
-          );
-        })}
-      </Grid>
+          ))}
+        </Grid>
+      </Stack>
+
+      <Stack spacing={1.5}>
+        <Typography variant="h3">Продажи за 30 дней</Typography>
+        <Grid container spacing={2}>
+          {salesMetrics.map((metric) => (
+            <Grid key={metric.label} size={{ xs: 12, sm: 6, lg: 3 }}>
+              <MetricCard {...metric} />
+            </Grid>
+          ))}
+        </Grid>
+      </Stack>
+
+      <Stack spacing={1.5}>
+        <Typography variant="h3">Требуют внимания</Typography>
+        <Grid container spacing={2}>
+          {attentionMetrics.map((metric) => (
+            <Grid key={metric.label} size={{ xs: 12, sm: 6, lg: 3 }}>
+              <MetricCard {...metric} />
+            </Grid>
+          ))}
+        </Grid>
+      </Stack>
     </Stack>
   );
 }

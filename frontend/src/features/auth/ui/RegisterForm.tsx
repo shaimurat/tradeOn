@@ -1,14 +1,12 @@
-import { Alert, Box, Button, Snackbar, TextField } from '@mui/material';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from 'react-router-dom';
+import { Alert, Box, Button, Snackbar, TextField } from '@mui/material';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { parseApiError } from '../../../shared/api/error';
+import { authApi } from '../api/authApi';
 import { useAuthStore } from '../model/authStore';
 import { registerSchema, type RegisterFormValues } from '../model/registerSchema';
-import { authApi } from '../api/authApi';
-import { parseApiError } from '../../../shared/api/error';
-
 
 export function RegisterForm() {
   const navigate = useNavigate();
@@ -31,7 +29,7 @@ export function RegisterForm() {
 
   const onSubmit = async (values: RegisterFormValues) => {
     try {
-    const response = await authApi.login(values);
+      const response = await authApi.register(values);
 
       setAuth(response.user, response.access_token);
 

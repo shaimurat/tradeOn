@@ -8,16 +8,33 @@ import type { Store } from '../model/types';
 
 type StoreCardProps = {
   store: Store;
+  onSelect: (store: Store) => void;
   onEdit: (store: Store) => void;
   onDelete: (store: Store) => void;
 };
 
-export function StoreCard({ store, onEdit, onDelete }: StoreCardProps) {
+export function StoreCard({ store, onSelect, onEdit, onDelete }: StoreCardProps) {
   return (
     <Card
+      role="link"
+      tabIndex={0}
+      onClick={() => onSelect(store)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onSelect(store);
+        }
+      }}
       sx={{
         height: '100%',
+        cursor: 'pointer',
         transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+
+        '&:focus-visible': {
+          outline: '2px solid',
+          outlineColor: 'primary.main',
+          outlineOffset: 2,
+        },
 
         '&:hover': {
           borderColor: 'text.primary',

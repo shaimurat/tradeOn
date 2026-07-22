@@ -11,12 +11,13 @@ import {
   Typography,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import ViewSidebarOutlinedIcon from '@mui/icons-material/ViewSidebarOutlined';
+import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
 import PersonIcon from '@mui/icons-material/Person';
 import { useState } from 'react';
+import { useMediaQuery, useTheme } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useAuthStore } from '../../features/auth/model/authStore';
@@ -24,10 +25,13 @@ import { authApi } from '../../features/auth/api/authApi';
 import { navigationItems } from '../config/navigation';
 
 type HeaderProps = {
-  onOpenSidebar: () => void;
+  sidebarOpen: boolean;
+  onToggleSidebar: () => void;
 };
 
-export function Header({ onOpenSidebar }: HeaderProps) {
+export function Header({ sidebarOpen, onToggleSidebar }: HeaderProps) {
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -37,13 +41,12 @@ export function Header({ onOpenSidebar }: HeaderProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const activeItem = navigationItems.find((item) => {
-    return (
-      location.pathname === item.path ||
-      location.pathname.startsWith(`${item.path}/`)
-    );
+    return location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
   });
 
   const title = activeItem?.label ?? 'Панель управления';
+  const sidebarButtonLabel =
+    isDesktop && sidebarOpen ? 'Свернуть боковую панель' : 'Развернуть боковую панель';
 
   const handleLogout = async () => {
     try {
@@ -79,21 +82,25 @@ export function Header({ onOpenSidebar }: HeaderProps) {
         }}
       >
         <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-          <IconButton onClick={onOpenSidebar} aria-label="Открыть меню">
-            <MenuIcon sx={{ fontSize: 20 }} />
-          </IconButton>
-
-          <IconButton
-            aria-label="Боковая панель"
-            sx={{
-              display: {
-                xs: 'none',
-                md: 'inline-flex',
-              },
-            }}
-          >
-            <ViewSidebarOutlinedIcon sx={{ fontSize: 19 }} />
-          </IconButton>
+          <Tooltip title={sidebarButtonLabel} placement="bottom">
+            <IconButton
+              onClick={onToggleSidebar}
+              aria-label={sidebarButtonLabel}
+              aria-expanded={isDesktop ? sidebarOpen : undefined}
+              sx={{
+                border: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'background.paper',
+                '&:hover': { bgcolor: 'secondary.main' },
+              }}
+            >
+              {isDesktop && sidebarOpen ? (
+                <MenuOpenIcon sx={{ fontSize: 21 }} />
+              ) : (
+                <MenuIcon sx={{ fontSize: 21 }} />
+              )}
+            </IconButton>
+          </Tooltip>
 
           <Typography
             variant="body1"
@@ -167,9 +174,7 @@ export function Header({ onOpenSidebar }: HeaderProps) {
             }}
           >
             <Box sx={{ px: 2, py: 1.5 }}>
-              <Typography sx={{ fontWeight: 700 }}>
-                {user?.username ?? 'Пользователь'}
-              </Typography>
+              <Typography sx={{ fontWeight: 700 }}>{user?.username ?? 'Пользователь'}</Typography>
 
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                 {user?.email ?? 'user@tradeon.kz'}

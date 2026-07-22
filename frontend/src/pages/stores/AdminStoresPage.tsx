@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { Alert, Box, CircularProgress, Stack } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 import { storesApi } from '../../features/stores/api/storesApi';
 import { AdminStoresTable } from '../../features/stores/ui/AdminStoresTable';
@@ -28,6 +29,7 @@ const DEFAULT_FILTERS: StoreFiltersValue = {
 };
 
 export function AdminStoresPage() {
+  const navigate = useNavigate();
   const [stores, setStores] = useState<Store[]>([]);
   const [sellers, setSellers] = useState<User[]>([]);
   const [filters, setFilters] = useState<StoreFiltersValue>(DEFAULT_FILTERS);
@@ -47,10 +49,10 @@ export function AdminStoresPage() {
 
   const { notification, showSuccessNotification, showErrorNotification, closeNotification } =
     useNotification();
-const handleCloseForm = () => {
-  setFormOpen(false);
-  setEditingStore(null);
-};
+  const handleCloseForm = () => {
+    setFormOpen(false);
+    setEditingStore(null);
+  };
   const loadSellers = async () => {
     try {
       setIsSellersLoading(true);
@@ -120,9 +122,6 @@ const handleCloseForm = () => {
     setFilters(DEFAULT_FILTERS);
     setPage(0);
   };
-
-
-
 
   const handleDeleteStore = async () => {
     if (!deletingStore) {
@@ -195,6 +194,9 @@ const handleCloseForm = () => {
             setLimit(value);
             setPage(0);
           }}
+          onSelect={(store) => {
+            navigate(`/products?store=${encodeURIComponent(store.slug)}`);
+          }}
           onEdit={(store) => {
             setEditingStore(store);
             setFormOpen(true);
@@ -204,48 +206,48 @@ const handleCloseForm = () => {
       )}
 
       {editingStore ? (
-  <StoreFormDialog
-    open={formOpen}
-    mode="edit"
-    role="admin"
-    store={editingStore}
-    sellers={sellers}
-    isSellersLoading={isSellersLoading}
-    onClose={handleCloseForm}
-    onSubmit={async (payload) => {
-      try {
-        await storesApi.adminPatchStore(editingStore.id, payload);
-        showSuccessNotification('Магазин успешно обновлен');
+        <StoreFormDialog
+          open={formOpen}
+          mode="edit"
+          role="admin"
+          store={editingStore}
+          sellers={sellers}
+          isSellersLoading={isSellersLoading}
+          onClose={handleCloseForm}
+          onSubmit={async (payload) => {
+            try {
+              await storesApi.adminPatchStore(editingStore.id, payload);
+              showSuccessNotification('Магазин успешно обновлен');
 
-        await loadStores();
-      } catch (err) {
-        showErrorNotification(parseApiError(err, 'Не удалось обновить магазин').message);
-        throw err;
-      }
-    }}
-  />
-) : (
-  <StoreFormDialog
-    open={formOpen}
-    mode="create"
-    role="admin"
-    store={null}
-    sellers={sellers}
-    isSellersLoading={isSellersLoading}
-    onClose={handleCloseForm}
-    onSubmit={async (payload) => {
-      try {
-        await storesApi.adminCreateStore(payload);
-        showSuccessNotification('Магазин успешно создан');
+              await loadStores();
+            } catch (err) {
+              showErrorNotification(parseApiError(err, 'Не удалось обновить магазин').message);
+              throw err;
+            }
+          }}
+        />
+      ) : (
+        <StoreFormDialog
+          open={formOpen}
+          mode="create"
+          role="admin"
+          store={null}
+          sellers={sellers}
+          isSellersLoading={isSellersLoading}
+          onClose={handleCloseForm}
+          onSubmit={async (payload) => {
+            try {
+              await storesApi.adminCreateStore(payload);
+              showSuccessNotification('Магазин успешно создан');
 
-        await loadStores();
-      } catch (err) {
-        showErrorNotification(parseApiError(err, 'Не удалось создать магазин').message);
-        throw err;
-      }
-    }}
-  />
-)}
+              await loadStores();
+            } catch (err) {
+              showErrorNotification(parseApiError(err, 'Не удалось создать магазин').message);
+              throw err;
+            }
+          }}
+        />
+      )}
 
       <StoreDeleteDialog
         store={deletingStore}
