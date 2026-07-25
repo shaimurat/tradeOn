@@ -1,0 +1,16 @@
+basePath: /api
+host: localhost:8080
+info:
+  contact: {}
+  description: Api server for TradeOn
+  title: TradeOn Backend
+  version: "0.2"
+paths: {}
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

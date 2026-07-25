@@ -25,6 +25,14 @@ import type { Product, ProductStatus, StoreOption } from '../model/types';
 import type { CategoryPathItem, ProductFormState } from '../lib/productForm';
 
 import { statusLabelMap, statusOptions } from '../lib/productConstants';
+import type {
+  ProductAttribute,
+  ProductAttributeOption,
+} from '../../productAttributes/model/types';
+import {
+  ProductAttributeFields,
+  type ProductAttributeFormValues,
+} from '../../productAttributes/ui/ProductAttributeFields';
 
 type ProductDialogProps = {
   open: boolean;
@@ -44,6 +52,12 @@ type ProductDialogProps = {
   onCategoryPathChange: (path: CategoryPathItem[]) => void;
   onCategoryClear: () => void;
   onCreateCategory: (parentID: string | null) => void;
+  attributes: ProductAttribute[];
+  attributeOptions: Record<string, ProductAttributeOption[]>;
+  attributeValues: ProductAttributeFormValues;
+  attributesLoading: boolean;
+  onAttributeChange: (attributeID: string, value: string | boolean) => void;
+  onCreateAttribute: () => void;
 };
 
 export function ProductDialog({
@@ -64,6 +78,12 @@ export function ProductDialog({
   onCategoryPathChange,
   onCategoryClear,
   onCreateCategory,
+  attributes,
+  attributeOptions,
+  attributeValues,
+  attributesLoading,
+  onAttributeChange,
+  onCreateAttribute,
 }: ProductDialogProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -242,6 +262,32 @@ export function ProductDialog({
               </Grid>
             </Grid>
           </FormSection>
+
+          {form.store_id && form.category_id && (
+            <FormSection
+              title="Характеристики"
+              description="Набор полей зависит от магазина и выбранной категории."
+            >
+              <Stack spacing={2}>
+                <Button
+                  variant="outlined"
+                  onClick={onCreateAttribute}
+                  disabled={submitting || attributesLoading}
+                  sx={{ alignSelf: 'flex-start' }}
+                >
+                  Добавить новый атрибут
+                </Button>
+                <ProductAttributeFields
+                  attributes={attributes}
+                  optionsByAttribute={attributeOptions}
+                  values={attributeValues}
+                  loading={attributesLoading}
+                  disabled={submitting}
+                  onChange={onAttributeChange}
+                />
+              </Stack>
+            </FormSection>
+          )}
 
           <FormSection
             title="Цена и учет"

@@ -241,6 +241,564 @@ const docTemplate = `{
                 }
             }
         },
+        "/product-attributes": {
+            "get": {
+                "description": "Returns all product attributes for a store",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product Attributes"
+                ],
+                "summary": "List product attributes",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Store ID",
+                        "name": "store_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/product.ProductAttributesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a product attribute for a store. Seller can create attributes only for own stores, admin can create for any store",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product Attributes"
+                ],
+                "summary": "Create product attribute",
+                "parameters": [
+                    {
+                        "description": "Create product attribute request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/product.CreateProductAttributeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/product.ProductAttributeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/product-attributes/{id}": {
+            "get": {
+                "description": "Returns a product attribute by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product Attributes"
+                ],
+                "summary": "Get product attribute by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product attribute ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/product.ProductAttributeResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a product attribute and its options and product values",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product Attributes"
+                ],
+                "summary": "Delete product attribute",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product attribute ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates a product attribute. Seller can update attributes only for own stores, admin can update any attribute",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product Attributes"
+                ],
+                "summary": "Update product attribute",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product attribute ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Patch product attribute request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/product.PatchProductAttributeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/product.ProductAttributeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/product-attributes/{id}/options": {
+            "get": {
+                "description": "Returns all options of a product attribute ordered by position",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product Attribute Options"
+                ],
+                "summary": "List product attribute options",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product attribute ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/product.ProductAttributeOptionsResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates an option for a select product attribute",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product Attribute Options"
+                ],
+                "summary": "Create product attribute option",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product attribute ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Create product attribute option request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/product.CreateProductAttributeOptionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/product.ProductAttributeOptionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/product-attributes/{id}/options/{option_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes an option from a select product attribute",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product Attribute Options"
+                ],
+                "summary": "Delete product attribute option",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product attribute ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Product attribute option ID",
+                        "name": "option_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates an option of a select product attribute",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product Attribute Options"
+                ],
+                "summary": "Update product attribute option",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product attribute ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Product attribute option ID",
+                        "name": "option_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Patch product attribute option request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/product.PatchProductAttributeOptionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/product.ProductAttributeOptionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/product-categories": {
             "get": {
                 "description": "Returns product categories with optional filters",
@@ -633,6 +1191,12 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "object",
+                        "description": "Attribute filters in attribute_filters[attribute_id]=value format",
+                        "name": "attribute_filters",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "Sort field",
                         "name": "sort_by",
@@ -949,6 +1513,237 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/product.ProductResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/{id}/attributes": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Adds an attribute value to a product. Exactly one value field matching the attribute type must be provided",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product Attribute Values"
+                ],
+                "summary": "Add product attribute value",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Create product attribute value request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/product.CreateProductAttributeValueRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/product.ProductAttributeValueResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/{id}/attributes/{value_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes an attribute value assigned to a product",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product Attribute Values"
+                ],
+                "summary": "Delete product attribute value",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Product attribute value ID",
+                        "name": "value_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates an attribute value assigned to a product",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product Attribute Values"
+                ],
+                "summary": "Update product attribute value",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Product attribute value ID",
+                        "name": "value_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Patch product attribute value request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/product.PatchProductAttributeValueRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/product.ProductAttributeValueResponse"
                         }
                     },
                     "400": {
@@ -2036,6 +2831,21 @@ const docTemplate = `{
                 }
             }
         },
+        "models.AttributeType": {
+            "type": "string",
+            "enum": [
+                "text",
+                "number",
+                "bool",
+                "select"
+            ],
+            "x-enum-varnames": [
+                "AttributeTypeText",
+                "AttributeTypeNumber",
+                "AttributeTypeBool",
+                "AttributeTypeSelect"
+            ]
+        },
         "models.AuthMethod": {
             "type": "string",
             "enum": [
@@ -2102,6 +2912,88 @@ const docTemplate = `{
                 "UserStatusActive",
                 "UserStatusInactive"
             ]
+        },
+        "product.CreateProductAttributeOptionRequest": {
+            "type": "object",
+            "required": [
+                "value"
+            ],
+            "properties": {
+                "position": {
+                    "type": "integer"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "product.CreateProductAttributeRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "name",
+                "store_id",
+                "type"
+            ],
+            "properties": {
+                "category_id": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "is_filter": {
+                    "type": "boolean"
+                },
+                "is_required": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "store_id": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "text",
+                        "number",
+                        "bool",
+                        "select"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.AttributeType"
+                        }
+                    ]
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "product.CreateProductAttributeValueRequest": {
+            "type": "object",
+            "required": [
+                "product_attribute_id"
+            ],
+            "properties": {
+                "option_id": {
+                    "type": "string"
+                },
+                "product_attribute_id": {
+                    "type": "string"
+                },
+                "value_bool": {
+                    "type": "boolean"
+                },
+                "value_number": {
+                    "type": "number"
+                },
+                "value_text": {
+                    "type": "string"
+                }
+            }
         },
         "product.CreateProductBodyRequest": {
             "type": "object",
@@ -2217,6 +3109,67 @@ const docTemplate = `{
                 }
             }
         },
+        "product.PatchProductAttributeOptionRequest": {
+            "type": "object",
+            "properties": {
+                "position": {
+                    "type": "integer"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "product.PatchProductAttributeRequest": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "is_filter": {
+                    "type": "boolean"
+                },
+                "is_required": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "text",
+                        "number",
+                        "bool",
+                        "select"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.AttributeType"
+                        }
+                    ]
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "product.PatchProductAttributeValueRequest": {
+            "type": "object",
+            "properties": {
+                "option_id": {
+                    "type": "string"
+                },
+                "value_bool": {
+                    "type": "boolean"
+                },
+                "value_number": {
+                    "type": "number"
+                },
+                "value_text": {
+                    "type": "string"
+                }
+            }
+        },
         "product.PatchProductCategoryParams": {
             "type": "object",
             "properties": {
@@ -2276,6 +3229,133 @@ const docTemplate = `{
                 }
             }
         },
+        "product.ProductAttributeDTO": {
+            "type": "object",
+            "properties": {
+                "category_id": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_filter": {
+                    "type": "boolean"
+                },
+                "is_required": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "store_id": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/models.AttributeType"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "product.ProductAttributeOptionDTO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "position": {
+                    "type": "integer"
+                },
+                "product_attribute_id": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "product.ProductAttributeOptionResponse": {
+            "type": "object",
+            "properties": {
+                "product_attribute_option": {
+                    "$ref": "#/definitions/product.ProductAttributeOptionDTO"
+                }
+            }
+        },
+        "product.ProductAttributeOptionsResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "product_attribute_options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/product.ProductAttributeOptionDTO"
+                    }
+                }
+            }
+        },
+        "product.ProductAttributeResponse": {
+            "type": "object",
+            "properties": {
+                "product_attribute": {
+                    "$ref": "#/definitions/product.ProductAttributeDTO"
+                }
+            }
+        },
+        "product.ProductAttributeValueDTO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "option_id": {
+                    "type": "string"
+                },
+                "product_attribute_id": {
+                    "type": "string"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "value_bool": {
+                    "type": "boolean"
+                },
+                "value_number": {
+                    "type": "number"
+                },
+                "value_text": {
+                    "type": "string"
+                }
+            }
+        },
+        "product.ProductAttributeValueResponse": {
+            "type": "object",
+            "properties": {
+                "product_attribute_value": {
+                    "$ref": "#/definitions/product.ProductAttributeValueDTO"
+                }
+            }
+        },
+        "product.ProductAttributesResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "product_attributes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/product.ProductAttributeDTO"
+                    }
+                }
+            }
+        },
         "product.ProductCategoriesListResponse": {
             "type": "object",
             "properties": {
@@ -2324,6 +3404,12 @@ const docTemplate = `{
         "product.ProductDTO": {
             "type": "object",
             "properties": {
+                "attributes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/product.ProductAttributeValueDTO"
+                    }
+                },
                 "category_id": {
                     "type": "string"
                 },
@@ -2708,7 +3794,7 @@ const docTemplate = `{
                     "enum": [
                         "admin",
                         "seller",
-                        "customer"
+                        "client"
                     ],
                     "allOf": [
                         {
@@ -2757,7 +3843,7 @@ const docTemplate = `{
                     "enum": [
                         "admin",
                         "seller",
-                        "customer"
+                        "client"
                     ],
                     "allOf": [
                         {

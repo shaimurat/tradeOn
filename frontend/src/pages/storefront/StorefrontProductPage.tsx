@@ -23,6 +23,8 @@ import { formatPrice } from '../../features/products/lib/productFormatters';
 import { storesApi } from '../../features/stores/api/storesApi';
 import { buildWhatsAppUrl } from '../../shared/lib/whatsapp';
 import { StorefrontHeader } from '../../widgets/storefront/StorefrontHeader';
+import { productAttributesApi } from '../../features/productAttributes/api/productAttributesApi';
+import { ProductAttributesView } from '../../features/productAttributes/ui/ProductAttributesView';
 
 const getCategory = async (categoryID: string): Promise<ProductCategory> => {
   const response = await productCategoriesApi.getByID(categoryID);
@@ -42,7 +44,17 @@ export function StorefrontProductPage() {
       if (product.status !== 'active') throw new Error('PRODUCT_UNAVAILABLE');
 
       const category = product.category_id ? await getCategory(product.category_id) : null;
-      return { store, product, category };
+      const attributeData = await productAttributesApi.getForProduct(
+        product.store_id,
+        product.category_id
+      );
+      return {
+        store,
+        product,
+        category,
+        attributes: attributeData.attributes,
+        attributeOptions: attributeData.optionsByAttribute,
+      };
     },
   });
 
@@ -65,7 +77,7 @@ export function StorefrontProductPage() {
     );
   }
 
-  const { store, product, category } = detailsQuery.data;
+  const { store, product, category, attributes, attributeOptions } = detailsQuery.data;
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -151,6 +163,17 @@ export function StorefrontProductPage() {
               </Box>
 
               <Paper variant="outlined" sx={{ p: 2.5 }}>
+                <Typography variant="h3" sx={{ mb: 1 }}>
+                  Характеристики
+                </Typography>
+                <ProductAttributesView
+                  attributes={attributes}
+                  optionsByAttribute={attributeOptions}
+                  values={product.attributes ?? []}
+                />
+              </Paper>
+
+              <Paper variant="outlined" sx={{ p: 2.5 }}>
                 <Typography sx={{ fontWeight: 700 }}>Хотите уточнить детали?</Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
                   Свяжитесь с магазином по наличию, доставке и способам оплаты.
@@ -173,7 +196,7 @@ export function StorefrontProductPage() {
                   )}
                   {store.email && (
                     <Button component="a" href={`mailto:${store.email}`} variant="outlined">
-                      Написать
+                      Написать на почту
                     </Button>
                   )}
                 </Stack>

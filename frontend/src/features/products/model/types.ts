@@ -1,4 +1,5 @@
 import type { CreateProductCategoryWithProductRequest } from '../../productCategories/model/types';
+import type { ProductAttributeValue } from '../../productAttributes/model/types';
 
 export type ProductStatus = 'draft' | 'active' | 'inactive' | 'blocked';
 
@@ -17,6 +18,7 @@ export type Product = {
   supplier_url?: string | null;
   created_at: string;
   updated_at: string;
+  attributes: ProductAttributeValue[];
 };
 
 export type CreateProductBody = {
@@ -60,6 +62,7 @@ export type ListProductsParams = {
   status?: ProductStatus;
   limit?: number;
   offset?: number;
+  attribute_filters?: Record<string, string>;
 };
 
 export type ProductResponse = {

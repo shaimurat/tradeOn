@@ -17,6 +17,7 @@ import (
 	sqldb "tradeOn/internal/infrastructure/sqlc/generated"
 	"tradeOn/internal/platform/database"
 	"tradeOn/internal/usecase/auth_uc"
+	"tradeOn/internal/usecase/product_attribute_uc"
 	"tradeOn/internal/usecase/product_category_uc"
 	"tradeOn/internal/usecase/product_uc"
 	"tradeOn/internal/usecase/store_uc"
@@ -26,12 +27,13 @@ import (
 const PasswordHashCost = 12
 
 type Container struct {
-	AuthMiddleware         *middleware.AuthMiddleware
-	AuthHandler            *auth.AuthHandler
-	UserHandler            *user.UserHandler
-	StoreHandler           *store.StoreHandler
-	ProductHandler         *product.ProductHandler
-	ProductCategoryHandler *product.ProductCategoryHandler
+	AuthMiddleware          *middleware.AuthMiddleware
+	AuthHandler             *auth.AuthHandler
+	UserHandler             *user.UserHandler
+	StoreHandler            *store.StoreHandler
+	ProductHandler          *product.ProductHandler
+	ProductCategoryHandler  *product.ProductCategoryHandler
+	ProductAttributeHandler *product.ProductAttributeHandler
 }
 
 func NewContainer(cfg *config.Config, logger *slog.Logger) *Container {
@@ -47,6 +49,9 @@ func NewContainer(cfg *config.Config, logger *slog.Logger) *Container {
 	storeRepo := repository.NewStoreRepository(db)
 	productRepo := repository.NewProductRepository(db)
 	productCategoryRepo := repository.NewProductCategoryRepository(db)
+	productAttributeRepo := repository.NewProductAttributeRepository(db)
+	productAttributeOptionRepo := repository.NewProductAttributeOptionRepository(db)
+	productAttributeValueRepo := repository.NewProductAttributeValueRepository(db)
 
 	//Services
 	jwtService := jwt.NewJwtService(
@@ -61,8 +66,11 @@ func NewContainer(cfg *config.Config, logger *slog.Logger) *Container {
 	authUseCase := auth_uc.NewAuthUseCase(userRepo, refreshTokenRepo, hasher, jwtService, time.Duration(cfg.JWTConfig.JwtRefreshExpiresHours)*time.Hour, logger)
 	userUseCase := user_uc.NewUserUseCase(userRepo, hasher)
 	storeUseCase := store_uc.NewStoreUseCase(storeRepo, logger)
-	productUseCase := product_uc.NewProductUseCase(productRepo, productCategoryRepo, storeRepo, logger)
+	productUseCase := product_uc.NewProductUseCase(productRepo, productCategoryRepo, storeRepo, productAttributeValueRepo, logger)
 	productCategoryUseCase := product_category_uc.NewProductCategoryUseCase(productCategoryRepo, storeRepo, logger)
+	productAttributeUseCase := product_attribute_uc.NewProductAttributeUseCase(
+		productAttributeRepo, productAttributeOptionRepo, productAttributeValueRepo, productRepo, productCategoryRepo, storeRepo, logger,
+	)
 
 	//Handlers
 	authHandler := auth.NewAuthHandler(authUseCase, cfg)
@@ -70,15 +78,17 @@ func NewContainer(cfg *config.Config, logger *slog.Logger) *Container {
 	storeHandler := store.NewStoreHandler(storeUseCase)
 	productHandler := product.NewProductHandler(productUseCase)
 	productCategoryHandler := product.NewProductCategoryHandler(productCategoryUseCase)
+	productAttributeHandler := product.NewProductAttributeHandler(productAttributeUseCase)
 
 	//Middleware
 	authMiddleware := middleware.NewAuthMiddleware(jwtService, logger)
 	return &Container{
-		AuthMiddleware:         authMiddleware,
-		AuthHandler:            authHandler,
-		UserHandler:            UserHandler,
-		StoreHandler:           storeHandler,
-		ProductHandler:         productHandler,
-		ProductCategoryHandler: productCategoryHandler,
+		AuthMiddleware:          authMiddleware,
+		AuthHandler:             authHandler,
+		UserHandler:             UserHandler,
+		StoreHandler:            storeHandler,
+		ProductHandler:          productHandler,
+		ProductCategoryHandler:  productCategoryHandler,
+		ProductAttributeHandler: productAttributeHandler,
 	}
 }

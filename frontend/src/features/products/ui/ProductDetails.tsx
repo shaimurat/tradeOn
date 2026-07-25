@@ -22,11 +22,18 @@ import { StoreStatusChip } from '../../stores/ui/StoreStatusChip';
 import { formatPrice } from '../lib/productFormatters';
 import type { Product } from '../model/types';
 import { StatusChip } from '../../../shared/ui/StatusChip';
+import type {
+  ProductAttribute,
+  ProductAttributeOption,
+} from '../../productAttributes/model/types';
+import { ProductAttributesView } from '../../productAttributes/ui/ProductAttributesView';
 
 type ProductDetailsProps = {
   product: Product;
   store: Store;
   category: ProductCategory | null;
+  attributes: ProductAttribute[];
+  attributeOptions: Record<string, ProductAttributeOption[]>;
 };
 
 type DetailRowProps = {
@@ -62,7 +69,13 @@ const formatDate = (value: string) =>
     new Date(value)
   );
 
-export function ProductDetails({ product, store, category }: ProductDetailsProps) {
+export function ProductDetails({
+  product,
+  store,
+  category,
+  attributes,
+  attributeOptions,
+}: ProductDetailsProps) {
   return (
     <Grid container spacing={3}>
       <Grid size={{ xs: 12, md: 5, lg: 4 }}>
@@ -131,6 +144,19 @@ export function ProductDetails({ product, store, category }: ProductDetailsProps
               >
                 {product.description || 'Описание товара не указано.'}
               </Typography>
+            </CardContent>
+          </Card>
+
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="h3" sx={{ mb: 1 }}>
+                Характеристики
+              </Typography>
+              <ProductAttributesView
+                attributes={attributes}
+                optionsByAttribute={attributeOptions}
+                values={product.attributes ?? []}
+              />
             </CardContent>
           </Card>
 

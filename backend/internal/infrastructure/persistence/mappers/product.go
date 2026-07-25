@@ -1,8 +1,11 @@
 package mappers
 
 import (
+	"encoding/json"
 	"tradeOn/internal/domain/models"
 	generated2 "tradeOn/internal/infrastructure/sqlc/generated"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func ToDomainProduct(product generated2.Product) models.Product {
@@ -75,23 +78,36 @@ func ToGetProductBySlugParams(storeID string, slug string) generated2.GetProduct
 
 func ToGetProductsListParams(params models.ListProductsParams) generated2.GetProductsListParams {
 	return generated2.GetProductsListParams{
-		StoreID:    StringToUUID(params.StoreID),
-		Search:     stringPtrToPgText(params.Search),
-		CategoryID: stringPtrToPgUUID(params.CategoryID),
-		PriceFrom:  int64PtrToPgInt8(params.PriceFrom),
-		PriceTo:    int64PtrToPgInt8(params.PriceTo),
-		Status:     productStatusPtrToNullProductStatus(params.Status),
-		Offset:     int32PtrToPgInt4(params.Offset),
-		Limit:      int32PtrToPgInt4(params.Limit),
+		StoreID:          StringToUUID(params.StoreID),
+		Search:           stringPtrToPgText(params.Search),
+		CategoryID:       stringPtrToPgUUID(params.CategoryID),
+		PriceFrom:        int64PtrToPgInt8(params.PriceFrom),
+		PriceTo:          int64PtrToPgInt8(params.PriceTo),
+		Status:           productStatusPtrToNullProductStatus(params.Status),
+		Offset:           int32PtrToPgInt4(params.Offset),
+		Limit:            int32PtrToPgInt4(params.Limit),
+		AttributeFilters: attributeFiltersToPgText(params.AttributeFilters),
 	}
 }
 func ToCountProductsListParams(params models.ListProductsParams) generated2.CountProductsListParams {
 	return generated2.CountProductsListParams{
-		StoreID:    StringToUUID(params.StoreID),
-		Search:     stringPtrToPgText(params.Search),
-		CategoryID: stringPtrToPgUUID(params.CategoryID),
-		PriceFrom:  int64PtrToPgInt8(params.PriceFrom),
-		PriceTo:    int64PtrToPgInt8(params.PriceTo),
-		Status:     productStatusPtrToNullProductStatus(params.Status),
+		StoreID:          StringToUUID(params.StoreID),
+		Search:           stringPtrToPgText(params.Search),
+		CategoryID:       stringPtrToPgUUID(params.CategoryID),
+		PriceFrom:        int64PtrToPgInt8(params.PriceFrom),
+		PriceTo:          int64PtrToPgInt8(params.PriceTo),
+		Status:           productStatusPtrToNullProductStatus(params.Status),
+		AttributeFilters: attributeFiltersToPgText(params.AttributeFilters),
 	}
+}
+
+func attributeFiltersToPgText(filters map[string]string) pgtype.Text {
+	if len(filters) == 0 {
+		return pgtype.Text{}
+	}
+	value, err := json.Marshal(filters)
+	if err != nil {
+		return pgtype.Text{}
+	}
+	return pgtype.Text{String: string(value), Valid: true}
 }

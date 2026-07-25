@@ -1,6 +1,7 @@
 package product
 
 import (
+	"encoding/json"
 	"tradeOn/internal/domain/models"
 	"tradeOn/internal/usecase/product_uc"
 )
@@ -21,6 +22,7 @@ func ToProductDTO(product models.Product) ProductDTO {
 		SupplierURL:  product.SupplierURL,
 		CreatedAt:    product.CreatedAt,
 		UpdatedAt:    product.UpdatedAt,
+		Attributes:   make([]ProductAttributeValueDTO, 0),
 	}
 }
 
@@ -86,15 +88,20 @@ func PatchProductRequestToParams(req PatchProductRequest) models.PatchProductPar
 }
 
 func ListProductsRequestToParams(req ListProductsRequest) models.ListProductsParams {
+	attributeFilters := make(map[string]string)
+	if req.AttributeFilters != "" {
+		_ = json.Unmarshal([]byte(req.AttributeFilters), &attributeFilters)
+	}
 	return models.ListProductsParams{
-		StoreID:    req.StoreID,
-		Search:     req.Search,
-		CategoryID: req.CategoryID,
-		PriceFrom:  req.PriceFrom,
-		PriceTo:    req.PriceTo,
-		Status:     req.Status,
-		Limit:      req.Limit,
-		Offset:     req.Offset,
+		StoreID:          req.StoreID,
+		Search:           req.Search,
+		CategoryID:       req.CategoryID,
+		PriceFrom:        req.PriceFrom,
+		PriceTo:          req.PriceTo,
+		Status:           req.Status,
+		Limit:            req.Limit,
+		Offset:           req.Offset,
+		AttributeFilters: attributeFilters,
 	}
 }
 func ToProductCategoryDTO(category models.ProductCategory) ProductCategoryDTO {

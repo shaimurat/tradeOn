@@ -17,6 +17,7 @@ import { ProductDetailsPage, ProductsPage } from '../../pages/products';
 import { ProductCategoriesPage } from '../../pages/productCategories/ProductCategoriesPage';
 import { UsersPage } from '../../pages/users';
 import { StorefrontPage, StorefrontProductPage } from '../../pages/storefront';
+import { ProductAttributesPage } from '../../pages/productAttributes';
 
 const router = createBrowserRouter([
   {
@@ -92,6 +93,10 @@ const router = createBrowserRouter([
               {
                 path: '/products/:storeSlug/:productSlug',
                 element: <ProductDetailsPage />,
+              },
+              {
+                path: '/attributes',
+                element: <ProductAttributesPage />,
               },
               // {
               //   path: '/orders',

@@ -1,6 +1,7 @@
 package product
 
 import (
+	"encoding/json"
 	"tradeOn/internal/delivery/http/middleware"
 	"tradeOn/internal/delivery/http/response"
 	"tradeOn/internal/domain/models/errs"
@@ -94,6 +95,9 @@ func (h *ProductHandler) Update(c *gin.Context) {
 		return
 	}
 	productDto := ToProductDTO(*product)
+	if !h.addAttributeValues(c, &productDto) {
+		return
+	}
 	c.JSON(200, ProductResponse{productDto})
 }
 
@@ -154,6 +158,9 @@ func (h *ProductHandler) GetByID(c *gin.Context) {
 		return
 	}
 	productDto := ToProductDTO(*product)
+	if !h.addAttributeValues(c, &productDto) {
+		return
+	}
 	c.JSON(200, ProductResponse{productDto})
 }
 
@@ -187,6 +194,9 @@ func (h *ProductHandler) GetBySlug(c *gin.Context) {
 		return
 	}
 	productDto := ToProductDTO(*product)
+	if !h.addAttributeValues(c, &productDto) {
+		return
+	}
 	c.JSON(200, ProductResponse{productDto})
 }
 
@@ -204,6 +214,7 @@ func (h *ProductHandler) GetBySlug(c *gin.Context) {
 // @Param status query models.ProductStatus false "Product status"
 // @Param offset query int false "Pagination offset"
 // @Param limit query int false "Pagination limit"
+// @Param attribute_filters query object false "Attribute filters in attribute_filters[attribute_id]=value format"
 // @Param sort_by query string false "Sort field"
 // @Param sort_order query models.SortOrder false "Sort order"
 // @Success 200 {object} ProductsListResponse
@@ -216,13 +227,41 @@ func (h *ProductHandler) ListProducts(c *gin.Context) {
 		response.HandleDomainError(c, err)
 		return
 	}
+	attributeFilters := c.QueryMap("attribute_filters")
+	if len(attributeFilters) == 0 && req.AttributeFilters != "" {
+		if err := json.Unmarshal([]byte(req.AttributeFilters), &attributeFilters); err != nil {
+			response.ValidationError(c, map[string]string{
+				"attribute_filters": "attribute_filters must use attribute_filters[id]=value format",
+			})
+			return
+		}
+	}
 	params := ListProductsRequestToParams(req)
+	params.AttributeFilters = attributeFilters
 	products, count, err := h.productUseCase.GetList(c.Request.Context(), params)
 	if err != nil {
 		response.HandleDomainError(c, err)
 		return
 	}
 	productsDto := ToProductDTOs(products)
+	for index := range productsDto {
+		if !h.addAttributeValues(c, &productsDto[index]) {
+			return
+		}
+	}
 
 	c.JSON(200, ProductsListResponse{Products: productsDto, Count: count})
+}
+
+func (h *ProductHandler) addAttributeValues(c *gin.Context, product *ProductDTO) bool {
+	values, err := h.productUseCase.GetAttributeValues(c.Request.Context(), product.ID)
+	if err != nil {
+		response.HandleDomainError(c, err)
+		return false
+	}
+	product.Attributes = make([]ProductAttributeValueDTO, 0, len(values))
+	for _, value := range values {
+		product.Attributes = append(product.Attributes, toProductAttributeValueDTO(*value))
+	}
+	return true
 }

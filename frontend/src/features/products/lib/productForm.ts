@@ -42,7 +42,7 @@ export const initialFormState: ProductFormState = {
   price: '',
   old_price: '',
   sku: '',
-  status: 'draft',
+  status: 'active',
   main_image_url: '',
   supplier_url: '',
 };

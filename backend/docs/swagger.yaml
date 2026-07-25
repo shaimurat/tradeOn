@@ -26,6 +26,18 @@ definitions:
     - email
     - password
     type: object
+  models.AttributeType:
+    enum:
+    - text
+    - number
+    - bool
+    - select
+    type: string
+    x-enum-varnames:
+    - AttributeTypeText
+    - AttributeTypeNumber
+    - AttributeTypeBool
+    - AttributeTypeSelect
   models.AuthMethod:
     enum:
     - email
@@ -78,6 +90,60 @@ definitions:
     - UserStatusBlocked
     - UserStatusActive
     - UserStatusInactive
+  product.CreateProductAttributeOptionRequest:
+    properties:
+      position:
+        type: integer
+      value:
+        type: string
+    required:
+    - value
+    type: object
+  product.CreateProductAttributeRequest:
+    properties:
+      category_id:
+        type: string
+      code:
+        type: string
+      is_filter:
+        type: boolean
+      is_required:
+        type: boolean
+      name:
+        type: string
+      store_id:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/models.AttributeType'
+        enum:
+        - text
+        - number
+        - bool
+        - select
+      unit:
+        type: string
+    required:
+    - code
+    - name
+    - store_id
+    - type
+    type: object
+  product.CreateProductAttributeValueRequest:
+    properties:
+      option_id:
+        type: string
+      product_attribute_id:
+        type: string
+      value_bool:
+        type: boolean
+      value_number:
+        type: number
+      value_text:
+        type: string
+    required:
+    - product_attribute_id
+    type: object
   product.CreateProductBodyRequest:
     properties:
       category_id:
@@ -154,6 +220,45 @@ definitions:
     required:
     - product
     type: object
+  product.PatchProductAttributeOptionRequest:
+    properties:
+      position:
+        type: integer
+      value:
+        type: string
+    type: object
+  product.PatchProductAttributeRequest:
+    properties:
+      code:
+        type: string
+      is_filter:
+        type: boolean
+      is_required:
+        type: boolean
+      name:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/models.AttributeType'
+        enum:
+        - text
+        - number
+        - bool
+        - select
+      unit:
+        type: string
+    type: object
+  product.PatchProductAttributeValueRequest:
+    properties:
+      option_id:
+        type: string
+      value_bool:
+        type: boolean
+      value_number:
+        type: number
+      value_text:
+        type: string
+    type: object
   product.PatchProductCategoryParams:
     properties:
       description:
@@ -192,6 +297,88 @@ definitions:
       supplier_url:
         type: string
     type: object
+  product.ProductAttributeDTO:
+    properties:
+      category_id:
+        type: string
+      code:
+        type: string
+      id:
+        type: string
+      is_filter:
+        type: boolean
+      is_required:
+        type: boolean
+      name:
+        type: string
+      store_id:
+        type: string
+      type:
+        $ref: '#/definitions/models.AttributeType'
+      unit:
+        type: string
+    type: object
+  product.ProductAttributeOptionDTO:
+    properties:
+      id:
+        type: string
+      position:
+        type: integer
+      product_attribute_id:
+        type: string
+      value:
+        type: string
+    type: object
+  product.ProductAttributeOptionResponse:
+    properties:
+      product_attribute_option:
+        $ref: '#/definitions/product.ProductAttributeOptionDTO'
+    type: object
+  product.ProductAttributeOptionsResponse:
+    properties:
+      count:
+        type: integer
+      product_attribute_options:
+        items:
+          $ref: '#/definitions/product.ProductAttributeOptionDTO'
+        type: array
+    type: object
+  product.ProductAttributeResponse:
+    properties:
+      product_attribute:
+        $ref: '#/definitions/product.ProductAttributeDTO'
+    type: object
+  product.ProductAttributeValueDTO:
+    properties:
+      id:
+        type: string
+      option_id:
+        type: string
+      product_attribute_id:
+        type: string
+      product_id:
+        type: string
+      value_bool:
+        type: boolean
+      value_number:
+        type: number
+      value_text:
+        type: string
+    type: object
+  product.ProductAttributeValueResponse:
+    properties:
+      product_attribute_value:
+        $ref: '#/definitions/product.ProductAttributeValueDTO'
+    type: object
+  product.ProductAttributesResponse:
+    properties:
+      count:
+        type: integer
+      product_attributes:
+        items:
+          $ref: '#/definitions/product.ProductAttributeDTO'
+        type: array
+    type: object
   product.ProductCategoriesListResponse:
     properties:
       count:
@@ -223,6 +410,10 @@ definitions:
     type: object
   product.ProductDTO:
     properties:
+      attributes:
+        items:
+          $ref: '#/definitions/product.ProductAttributeValueDTO'
+        type: array
       category_id:
         type: string
       created_at:
@@ -491,7 +682,7 @@ definitions:
         enum:
         - admin
         - seller
-        - customer
+        - client
       username:
         maxLength: 100
         minLength: 3
@@ -529,7 +720,7 @@ definitions:
         enum:
         - admin
         - seller
-        - customer
+        - client
       status:
         allOf:
         - $ref: '#/definitions/models.UserStatus'
@@ -726,6 +917,371 @@ paths:
       summary: Register user
       tags:
       - Auth
+  /product-attributes:
+    get:
+      description: Returns all product attributes for a store
+      parameters:
+      - description: Store ID
+        in: query
+        name: store_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product.ProductAttributesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: List product attributes
+      tags:
+      - Product Attributes
+    post:
+      consumes:
+      - application/json
+      description: Creates a product attribute for a store. Seller can create attributes
+        only for own stores, admin can create for any store
+      parameters:
+      - description: Create product attribute request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.CreateProductAttributeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/product.ProductAttributeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create product attribute
+      tags:
+      - Product Attributes
+  /product-attributes/{id}:
+    delete:
+      description: Deletes a product attribute and its options and product values
+      parameters:
+      - description: Product attribute ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete product attribute
+      tags:
+      - Product Attributes
+    get:
+      description: Returns a product attribute by ID
+      parameters:
+      - description: Product attribute ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product.ProductAttributeResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get product attribute by ID
+      tags:
+      - Product Attributes
+    patch:
+      consumes:
+      - application/json
+      description: Updates a product attribute. Seller can update attributes only
+        for own stores, admin can update any attribute
+      parameters:
+      - description: Product attribute ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Patch product attribute request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.PatchProductAttributeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product.ProductAttributeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update product attribute
+      tags:
+      - Product Attributes
+  /product-attributes/{id}/options:
+    get:
+      description: Returns all options of a product attribute ordered by position
+      parameters:
+      - description: Product attribute ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product.ProductAttributeOptionsResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: List product attribute options
+      tags:
+      - Product Attribute Options
+    post:
+      consumes:
+      - application/json
+      description: Creates an option for a select product attribute
+      parameters:
+      - description: Product attribute ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Create product attribute option request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.CreateProductAttributeOptionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/product.ProductAttributeOptionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create product attribute option
+      tags:
+      - Product Attribute Options
+  /product-attributes/{id}/options/{option_id}:
+    delete:
+      description: Deletes an option from a select product attribute
+      parameters:
+      - description: Product attribute ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Product attribute option ID
+        in: path
+        name: option_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete product attribute option
+      tags:
+      - Product Attribute Options
+    patch:
+      consumes:
+      - application/json
+      description: Updates an option of a select product attribute
+      parameters:
+      - description: Product attribute ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Product attribute option ID
+        in: path
+        name: option_id
+        required: true
+        type: string
+      - description: Patch product attribute option request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.PatchProductAttributeOptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product.ProductAttributeOptionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update product attribute option
+      tags:
+      - Product Attribute Options
   /product-categories:
     get:
       consumes:
@@ -982,6 +1538,10 @@ paths:
         in: query
         name: limit
         type: integer
+      - description: Attribute filters in attribute_filters[attribute_id]=value format
+        in: query
+        name: attribute_filters
+        type: object
       - description: Sort field
         in: query
         name: sort_by
@@ -1183,6 +1743,157 @@ paths:
       summary: Update product
       tags:
       - Products
+  /products/{id}/attributes:
+    post:
+      consumes:
+      - application/json
+      description: Adds an attribute value to a product. Exactly one value field matching
+        the attribute type must be provided
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Create product attribute value request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.CreateProductAttributeValueRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/product.ProductAttributeValueResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add product attribute value
+      tags:
+      - Product Attribute Values
+  /products/{id}/attributes/{value_id}:
+    delete:
+      description: Deletes an attribute value assigned to a product
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Product attribute value ID
+        in: path
+        name: value_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete product attribute value
+      tags:
+      - Product Attribute Values
+    patch:
+      consumes:
+      - application/json
+      description: Updates an attribute value assigned to a product
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Product attribute value ID
+        in: path
+        name: value_id
+        required: true
+        type: string
+      - description: Patch product attribute value request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.PatchProductAttributeValueRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product.ProductAttributeValueResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update product attribute value
+      tags:
+      - Product Attribute Values
   /products/store/{store_id}/slug/{slug}:
     get:
       consumes:

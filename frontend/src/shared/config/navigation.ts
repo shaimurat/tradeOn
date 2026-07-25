@@ -5,6 +5,7 @@ import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined';
 
 import type { UserRole } from '../../features/users/model/types';
 
@@ -39,6 +40,12 @@ export const navigationItems: NavigationItem[] = [
     path: '/categories',
     icon: CategoryOutlinedIcon,
     roles: ['seller'],
+  },
+  {
+    label: 'Атрибуты',
+    path: '/attributes',
+    icon: TuneOutlinedIcon,
+    roles: ['admin', 'seller'],
   },
   {
     label: 'Заказы',

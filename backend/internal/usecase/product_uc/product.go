@@ -14,11 +14,12 @@ type ProductUseCase struct {
 	productRepo         repos.ProductRepo
 	productCategoryRepo repos.ProductCategoryRepo
 	storeRepo           repos.StoreRepo
+	attributeValueRepo  repos.ProductAttributeValueRepo
 	logger              *slog.Logger
 }
 
-func NewProductUseCase(productRepo repos.ProductRepo, productCategoryRepo repos.ProductCategoryRepo, storeRepo repos.StoreRepo, logger *slog.Logger) *ProductUseCase {
-	return &ProductUseCase{productRepo: productRepo, productCategoryRepo: productCategoryRepo, storeRepo: storeRepo, logger: logger}
+func NewProductUseCase(productRepo repos.ProductRepo, productCategoryRepo repos.ProductCategoryRepo, storeRepo repos.StoreRepo, attributeValueRepo repos.ProductAttributeValueRepo, logger *slog.Logger) *ProductUseCase {
+	return &ProductUseCase{productRepo: productRepo, productCategoryRepo: productCategoryRepo, storeRepo: storeRepo, attributeValueRepo: attributeValueRepo, logger: logger}
 }
 func (uc *ProductUseCase) Create(ctx context.Context, input CreateProductInput, userID string, role models.Role) (*models.Product, error) {
 	if role != models.RoleAdmin {
@@ -103,6 +104,15 @@ func (uc *ProductUseCase) GetList(ctx context.Context, params models.ListProduct
 		return nil, 0, usecase.MapDBError(err)
 	}
 	return products, count, nil
+}
+
+func (uc *ProductUseCase) GetAttributeValues(ctx context.Context, productID string) ([]*models.ProductAttributeValue, error) {
+	values, err := uc.attributeValueRepo.ListByProductID(ctx, productID)
+	if err != nil {
+		uc.logger.Error("error getting product attribute values", "error", err)
+		return nil, usecase.MapDBError(err)
+	}
+	return values, nil
 }
 
 func (uc *ProductUseCase) checkSellerCanManageProduct(ctx context.Context, productID, userID string) error {

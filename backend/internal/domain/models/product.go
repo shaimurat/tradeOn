@@ -42,12 +42,13 @@ type PatchProductParams struct {
 }
 
 type ListProductsParams struct {
-	StoreID    string
-	Search     *string
-	CategoryID *string
-	PriceFrom  *int64
-	PriceTo    *int64
-	Status     *ProductStatus
-	Limit      *int32
-	Offset     *int32
+	StoreID          string
+	Search           *string
+	CategoryID       *string
+	PriceFrom        *int64
+	PriceTo          *int64
+	Status           *ProductStatus
+	Limit            *int32
+	Offset           *int32
+	AttributeFilters map[string]string
 }

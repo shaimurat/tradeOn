@@ -1,5 +1,5 @@
 import { Card, Stack } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { useAuthStore } from '../../features/auth/model/authStore';
@@ -38,6 +38,17 @@ import { parseApiError } from '../../shared/api/error';
 import { useNotification } from '../../shared/lib/useNotification';
 import { ConfirmDialog } from '../../shared/ui/ConfirmDialog';
 import { NotificationSnackbar } from '../../shared/ui/NotificationSnackbar';
+import { productAttributesApi } from '../../features/productAttributes/api/productAttributesApi';
+import type {
+  ProductAttribute,
+  ProductAttributeOption,
+  ProductAttributeValuePayload,
+} from '../../features/productAttributes/model/types';
+import type { ProductAttributeFormValues } from '../../features/productAttributes/ui/ProductAttributeFields';
+import {
+  ProductAttributeDialog,
+  type ProductAttributeForm,
+} from '../../features/productAttributes/ui/ProductAttributeDialog';
 
 const initialCategoryFormState: ProductCategoryFormState = {
   name: '',
@@ -45,7 +56,44 @@ const initialCategoryFormState: ProductCategoryFormState = {
   parent_id: '',
 };
 
+const initialAttributeFormState: ProductAttributeForm = {
+  category_id: '',
+  name: '',
+  code: '',
+  type: 'text',
+  unit: '',
+  is_required: false,
+  is_filter: false,
+  options: [],
+};
+
+const PRODUCTS_FILTERS_STORAGE_KEY = 'tradeon:products-filters';
+
+type SavedProductsFilters = {
+  selectedStoreID?: string;
+  searchDraft?: string;
+  search?: string;
+  status?: ProductStatus | '';
+  categoryID?: string;
+  filterCategoryParentID?: string | null;
+  filterCategoryPath?: CategoryPathItem[];
+  priceFrom?: string;
+  priceTo?: string;
+  attributeFilterValues?: Record<string, string>;
+  page?: number;
+};
+
+function loadSavedProductsFilters(): SavedProductsFilters {
+  try {
+    return JSON.parse(sessionStorage.getItem(PRODUCTS_FILTERS_STORAGE_KEY) ?? '{}');
+  } catch {
+    return {};
+  }
+}
+
 export function ProductsPage() {
+  const savedFilters = useMemo(() => loadSavedProductsFilters(), []);
+  const previousStoreID = useRef(savedFilters.selectedStoreID ?? '');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedStoreSlug = searchParams.get('store') ?? '';
@@ -54,19 +102,30 @@ export function ProductsPage() {
   const [stores, setStores] = useState<StoreOption[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
 
-  const [selectedStoreID, setSelectedStoreID] = useState('');
-  const [searchDraft, setSearchDraft] = useState('');
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<ProductStatus | ''>('');
-  const [categoryID, setCategoryID] = useState('');
-  const [filterCategoryParentID, setFilterCategoryParentID] = useState<string | null>(null);
-  const [filterCategoryPath, setFilterCategoryPath] = useState<CategoryPathItem[]>([]);
+  const [selectedStoreID, setSelectedStoreID] = useState(savedFilters.selectedStoreID ?? '');
+  const [searchDraft, setSearchDraft] = useState(savedFilters.searchDraft ?? '');
+  const [search, setSearch] = useState(savedFilters.search ?? '');
+  const [status, setStatus] = useState<ProductStatus | ''>(savedFilters.status ?? '');
+  const [categoryID, setCategoryID] = useState(savedFilters.categoryID ?? '');
+  const [filterCategoryParentID, setFilterCategoryParentID] = useState<string | null>(
+    savedFilters.filterCategoryParentID ?? null
+  );
+  const [filterCategoryPath, setFilterCategoryPath] = useState<CategoryPathItem[]>(
+    savedFilters.filterCategoryPath ?? []
+  );
   const [formCategoryParentID, setFormCategoryParentID] = useState<string | null>(null);
   const [formCategoryPath, setFormCategoryPath] = useState<CategoryPathItem[]>([]);
-  const [priceFrom, setPriceFrom] = useState('');
-  const [priceTo, setPriceTo] = useState('');
+  const [priceFrom, setPriceFrom] = useState(savedFilters.priceFrom ?? '');
+  const [priceTo, setPriceTo] = useState(savedFilters.priceTo ?? '');
+  const [filterAttributes, setFilterAttributes] = useState<ProductAttribute[]>([]);
+  const [filterAttributeOptions, setFilterAttributeOptions] = useState<
+    Record<string, ProductAttributeOption[]>
+  >({});
+  const [attributeFilterValues, setAttributeFilterValues] = useState<Record<string, string>>(
+    savedFilters.attributeFilterValues ?? {}
+  );
 
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(savedFilters.page ?? 1);
   const [count, setCount] = useState(0);
 
   const [loading, setLoading] = useState(false);
@@ -79,6 +138,17 @@ export function ProductsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductFormState>(initialFormState);
+  const [productAttributes, setProductAttributes] = useState<ProductAttribute[]>([]);
+  const [attributeOptions, setAttributeOptions] = useState<
+    Record<string, ProductAttributeOption[]>
+  >({});
+  const [attributeValues, setAttributeValues] = useState<ProductAttributeFormValues>({});
+  const [attributesLoading, setAttributesLoading] = useState(false);
+  const [attributeDialogOpen, setAttributeDialogOpen] = useState(false);
+  const [attributeSubmitting, setAttributeSubmitting] = useState(false);
+  const [attributeForm, setAttributeForm] = useState<ProductAttributeForm>(
+    initialAttributeFormState
+  );
 
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [categoryDialogMode, setCategoryDialogMode] = useState<ProductCategoryDialogMode>('create');
@@ -110,7 +180,14 @@ export function ProductsPage() {
     return flattenCategoryTree(categoriesByParentID);
   }, [categoriesByParentID]);
 
-  const hasActiveFilters = Boolean(search.trim() || status || categoryID || priceFrom || priceTo);
+  const hasActiveFilters = Boolean(
+    search.trim() ||
+      status ||
+      categoryID ||
+      priceFrom ||
+      priceTo ||
+      Object.values(attributeFilterValues).some(Boolean)
+  );
 
   const activeFilterLabels = useMemo(() => {
     const labels: string[] = [];
@@ -226,6 +303,9 @@ export function ProductsPage() {
         price_to: priceTo ? Number(priceTo) : undefined,
         limit: PRODUCT_LIMIT,
         offset: (page - 1) * PRODUCT_LIMIT,
+        attribute_filters: Object.fromEntries(
+          Object.entries(attributeFilterValues).filter(([, value]) => value !== '')
+        ),
       });
 
       setProducts(data.products);
@@ -252,15 +332,98 @@ export function ProductsPage() {
     }
 
     fetchCategories(selectedStoreID);
-    resetFilterCategoryState();
+    if (previousStoreID.current && previousStoreID.current !== selectedStoreID) {
+      resetFilterCategoryState();
+      setAttributeFilterValues({});
+    }
+    previousStoreID.current = selectedStoreID;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStoreID]);
+
+  useEffect(() => {
+    sessionStorage.setItem(
+      PRODUCTS_FILTERS_STORAGE_KEY,
+      JSON.stringify({
+        selectedStoreID,
+        searchDraft,
+        search,
+        status,
+        categoryID,
+        filterCategoryParentID,
+        filterCategoryPath,
+        priceFrom,
+        priceTo,
+        attributeFilterValues,
+        page,
+      } satisfies SavedProductsFilters)
+    );
+  }, [
+    selectedStoreID,
+    searchDraft,
+    search,
+    status,
+    categoryID,
+    filterCategoryParentID,
+    filterCategoryPath,
+    priceFrom,
+    priceTo,
+    attributeFilterValues,
+    page,
+  ]);
+
+  useEffect(() => {
+    if (!selectedStoreID) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFilterAttributes([]);
+      setFilterAttributeOptions({});
+      setAttributeFilterValues({});
+      return;
+    }
+    productAttributesApi
+      .list(selectedStoreID)
+      .then(async (data) => {
+        const applicable = data.product_attributes.filter(
+          (attribute) =>
+            attribute.is_filter &&
+            (!attribute.category_id ||
+              (Boolean(categoryID) && attribute.category_id === categoryID))
+        );
+        const optionEntries = await Promise.all(
+          applicable
+            .filter((attribute) => attribute.type === 'select')
+            .map(async (attribute) => [
+              attribute.id,
+              await productAttributesApi.listOptions(attribute.id),
+            ] as const)
+        );
+        setFilterAttributes(applicable);
+        setFilterAttributeOptions(Object.fromEntries(optionEntries));
+        setAttributeFilterValues((current) =>
+          Object.fromEntries(
+            Object.entries(current).filter(([id]) =>
+              applicable.some((attribute) => attribute.id === id)
+            )
+          )
+        );
+      })
+      .catch((error) => showErrorNotification(parseApiError(error).message));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStoreID, categoryID]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStoreID, search, status, categoryID, priceFrom, priceTo, page]);
+  }, [
+    selectedStoreID,
+    search,
+    status,
+    categoryID,
+    priceFrom,
+    priceTo,
+    attributeFilterValues,
+    page,
+  ]);
 
   const handleSearchSubmit = () => {
     setSearch(searchDraft.trim());
@@ -274,6 +437,7 @@ export function ProductsPage() {
     resetFilterCategoryState();
     setPriceFrom('');
     setPriceTo('');
+    setAttributeFilterValues({});
     setPage(1);
   };
 
@@ -316,6 +480,9 @@ export function ProductsPage() {
       store_id: selectedStoreID,
     });
     resetFormCategoryState();
+    setProductAttributes([]);
+    setAttributeOptions({});
+    setAttributeValues({});
     setDialogOpen(true);
   };
 
@@ -324,6 +491,20 @@ export function ProductsPage() {
     setForm(productToForm(product));
     setFormCategoryParentID(product.category_id ?? null);
     setFormCategoryPath([]);
+    setAttributeValues(
+      Object.fromEntries(
+        (product.attributes ?? []).map((value) => [
+          value.product_attribute_id,
+          value.value_text ??
+            (value.value_number !== null && value.value_number !== undefined
+              ? String(value.value_number)
+              : undefined) ??
+            value.value_bool ??
+            value.option_id ??
+            '',
+        ])
+      )
+    );
     setDialogOpen(true);
   };
 
@@ -346,6 +527,11 @@ export function ProductsPage() {
     setDialogOpen(false);
     setEditingProduct(null);
     setForm(initialFormState);
+    setProductAttributes([]);
+    setAttributeOptions({});
+    setAttributeValues({});
+    setAttributeDialogOpen(false);
+    setAttributeForm(initialAttributeFormState);
     resetFormCategoryState();
   };
 
@@ -363,6 +549,141 @@ export function ProductsPage() {
   const handleDialogCategoryClear = () => {
     updateForm({ category_id: '' });
     resetFormCategoryState();
+  };
+
+  useEffect(() => {
+    if (!dialogOpen || !form.store_id || !form.category_id) {
+      return;
+    }
+    let active = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAttributesLoading(true);
+    productAttributesApi
+      .list(form.store_id)
+      .then(async (data) => {
+        const applicable = data.product_attributes.filter(
+          (attribute) => !attribute.category_id || attribute.category_id === form.category_id
+        );
+        const optionEntries = await Promise.all(
+          applicable
+            .filter((attribute) => attribute.type === 'select')
+            .map(async (attribute) => [
+              attribute.id,
+              await productAttributesApi.listOptions(attribute.id),
+            ] as const)
+        );
+        if (active) {
+          setProductAttributes(applicable);
+          setAttributeOptions(Object.fromEntries(optionEntries));
+          setAttributeValues((current) =>
+            Object.fromEntries(
+              Object.entries(current).filter(([id]) =>
+                applicable.some((attribute) => attribute.id === id)
+              )
+            )
+          );
+        }
+      })
+      .catch((error) => active && showErrorNotification(parseApiError(error).message))
+      .finally(() => active && setAttributesLoading(false));
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dialogOpen, form.store_id, form.category_id]);
+
+  const buildAttributeValuePayload = (
+    attribute: ProductAttribute,
+    value: string | boolean
+  ): ProductAttributeValuePayload | null => {
+    if (value === '') return null;
+    const payload: ProductAttributeValuePayload = { product_attribute_id: attribute.id };
+    if (attribute.type === 'text') payload.value_text = String(value);
+    if (attribute.type === 'number') payload.value_number = Number(value);
+    if (attribute.type === 'bool') payload.value_bool = value === true;
+    if (attribute.type === 'select') payload.option_id = String(value);
+    return payload;
+  };
+
+  const handleOpenAttributeDialog = () => {
+    setAttributeForm({
+      ...initialAttributeFormState,
+      category_id: form.category_id,
+    });
+    setAttributeDialogOpen(true);
+  };
+
+  const handleCreateAttribute = async () => {
+    if (!attributeForm.name.trim() || !attributeForm.code.trim()) {
+      showErrorNotification('Укажите название и код атрибута');
+      return;
+    }
+    const optionValues = attributeForm.options.map((value) => value.trim()).filter(Boolean);
+    if (attributeForm.type === 'select' && optionValues.length === 0) {
+      showErrorNotification('Добавьте хотя бы один вариант выбора');
+      return;
+    }
+    if (new Set(optionValues).size !== optionValues.length) {
+      showErrorNotification('Варианты выбора не должны повторяться');
+      return;
+    }
+    try {
+      setAttributeSubmitting(true);
+      const attribute = await productAttributesApi.create({
+        store_id: form.store_id,
+        category_id: attributeForm.category_id || undefined,
+        name: attributeForm.name.trim(),
+        code: attributeForm.code.trim(),
+        type: attributeForm.type,
+        unit: attributeForm.unit.trim() || undefined,
+        is_required: attributeForm.is_required,
+        is_filter: attributeForm.is_filter,
+      });
+      const options =
+        attributeForm.type === 'select'
+          ? await Promise.all(
+              optionValues.map((value, position) =>
+                  productAttributesApi.createOption(attribute.id, { value, position })
+                )
+            )
+          : [];
+      setProductAttributes((current) => [...current, attribute]);
+      if (options.length > 0) {
+        setAttributeOptions((current) => ({ ...current, [attribute.id]: options }));
+      }
+      setAttributeDialogOpen(false);
+      setAttributeForm(initialAttributeFormState);
+      showSuccessNotification('Атрибут создан и добавлен в форму товара');
+    } catch (error) {
+      showErrorNotification(parseApiError(error).message);
+    } finally {
+      setAttributeSubmitting(false);
+    }
+  };
+
+  const syncAttributeValues = async (product: Product) => {
+    const existingByAttribute = new Map(
+      (product.attributes ?? []).map((value) => [value.product_attribute_id, value])
+    );
+    await Promise.all(
+      productAttributes.map(async (attribute) => {
+        const payload = buildAttributeValuePayload(attribute, attributeValues[attribute.id] ?? '');
+        const existing = existingByAttribute.get(attribute.id);
+        if (!payload && existing) {
+          await productAttributesApi.deleteValue(product.id, existing.id);
+        } else if (payload && existing) {
+          const patch = {
+            value_text: payload.value_text,
+            value_number: payload.value_number,
+            value_bool: payload.value_bool,
+            option_id: payload.option_id,
+          };
+          await productAttributesApi.updateValue(product.id, existing.id, patch);
+        } else if (payload) {
+          await productAttributesApi.createValue(product.id, payload);
+        }
+      })
+    );
   };
 
   const validateForm = () => {
@@ -391,6 +712,16 @@ export function ProductsPage() {
       return false;
     }
 
+    const missingRequiredAttribute = productAttributes.find(
+      (attribute) =>
+        attribute.is_required &&
+        (attributeValues[attribute.id] === undefined || attributeValues[attribute.id] === '')
+    );
+    if (missingRequiredAttribute) {
+      showErrorNotification(`Заполните обязательный атрибут «${missingRequiredAttribute.name}»`);
+      return false;
+    }
+
     return true;
   };
 
@@ -403,10 +734,13 @@ export function ProductsPage() {
       setSubmitting(true);
 
       if (editingProduct) {
-        await productsApi.updateProduct(editingProduct.id, buildPatchPayload(form));
+        const product = await productsApi.updateProduct(editingProduct.id, buildPatchPayload(form));
+        product.attributes = editingProduct.attributes ?? [];
+        await syncAttributeValues(product);
         showSuccessNotification('Товар успешно обновлен');
       } else {
-        await productsApi.createProduct(buildCreatePayload(form));
+        const product = await productsApi.createProduct(buildCreatePayload(form));
+        await syncAttributeValues(product);
         showSuccessNotification('Товар успешно создан');
       }
 
@@ -562,6 +896,13 @@ export function ProductsPage() {
             onPriceFromChange={handlePriceFromChange}
             onPriceToChange={handlePriceToChange}
             onResetFilters={handleResetFilters}
+            filterAttributes={filterAttributes}
+            filterAttributeOptions={filterAttributeOptions}
+            attributeFilterValues={attributeFilterValues}
+            onAttributeFilterChange={(attributeID, value) => {
+              setAttributeFilterValues((current) => ({ ...current, [attributeID]: value }));
+              setPage(1);
+            }}
           />
 
           <ProductsListCard
@@ -596,6 +937,25 @@ export function ProductsPage() {
           onCategoryPathChange={setFormCategoryPath}
           onCategoryClear={handleDialogCategoryClear}
           onCreateCategory={handleOpenCreateCategoryDialog}
+          attributes={productAttributes}
+          attributeOptions={attributeOptions}
+          attributeValues={attributeValues}
+          attributesLoading={attributesLoading}
+          onAttributeChange={(attributeID, value) =>
+            setAttributeValues((current) => ({ ...current, [attributeID]: value }))
+          }
+          onCreateAttribute={handleOpenAttributeDialog}
+        />
+
+        <ProductAttributeDialog
+          open={attributeDialogOpen}
+          editing={false}
+          form={attributeForm}
+          categories={categories.filter((category) => category.id === form.category_id)}
+          submitting={attributeSubmitting}
+          onChange={(patch) => setAttributeForm((current) => ({ ...current, ...patch }))}
+          onClose={() => !attributeSubmitting && setAttributeDialogOpen(false)}
+          onSubmit={handleCreateAttribute}
         />
 
         <ProductCategoryDialog

@@ -18,6 +18,11 @@ import type { ProductStatus, StoreOption } from '../model/types';
 import { CategoryTreePicker } from '../../../shared/ui/CategoryTreePicker';
 import { statusLabelMap, statusOptions } from '../lib/productConstants';
 import type { CategoryPathItem } from '../lib/productForm';
+import type {
+  ProductAttribute,
+  ProductAttributeOption,
+} from '../../productAttributes/model/types';
+import { ProductAttributeFilters } from '../../productAttributes/ui/ProductAttributeFilters';
 
 type ProductsFiltersCardProps = {
   stores: StoreOption[];
@@ -45,6 +50,10 @@ type ProductsFiltersCardProps = {
   onPriceFromChange: (value: string) => void;
   onPriceToChange: (value: string) => void;
   onResetFilters: () => void;
+  filterAttributes: ProductAttribute[];
+  filterAttributeOptions: Record<string, ProductAttributeOption[]>;
+  attributeFilterValues: Record<string, string>;
+  onAttributeFilterChange: (attributeID: string, value: string) => void;
 };
 
 export function ProductsFiltersCard({
@@ -73,6 +82,10 @@ export function ProductsFiltersCard({
   onPriceFromChange,
   onPriceToChange,
   onResetFilters,
+  filterAttributes,
+  filterAttributeOptions,
+  attributeFilterValues,
+  onAttributeFilterChange,
 }: ProductsFiltersCardProps) {
   return (
     <Box sx={{ bgcolor: 'background.paper' }}>
@@ -229,6 +242,14 @@ export function ProductsFiltersCard({
               onClear={onCategoryClear}
             />
           </Grid>
+
+          <ProductAttributeFilters
+            attributes={filterAttributes}
+            optionsByAttribute={filterAttributeOptions}
+            values={attributeFilterValues}
+            onChange={onAttributeFilterChange}
+            alignWithCategory
+          />
 
           {activeFilterLabels.length > 0 && (
             <Grid size={12}>

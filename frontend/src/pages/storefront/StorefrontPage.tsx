@@ -1,5 +1,6 @@
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import OpenInNewOutlinedIcon from '@mui/icons-material/OpenInNewOutlined';
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
 import RestartAltOutlinedIcon from '@mui/icons-material/RestartAltOutlined';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
@@ -31,27 +32,62 @@ import { productsApi } from '../../features/products/api/productsApi';
 import type { Product } from '../../features/products/model/types';
 import { StorefrontProductCard } from '../../features/products/ui/StorefrontProductCard';
 import { storesApi } from '../../features/stores/api/storesApi';
+import { isTwoGisUrl } from '../../features/stores/lib/twoGis';
 import { parseApiError } from '../../shared/lib/apiError';
 import { buildWhatsAppUrl } from '../../shared/lib/whatsapp';
 import { CategoryTreePicker } from '../../shared/ui/CategoryTreePicker';
 import { StorefrontHeader } from '../../widgets/storefront/StorefrontHeader';
+import { productAttributesApi } from '../../features/productAttributes/api/productAttributesApi';
+import { ProductAttributeFilters } from '../../features/productAttributes/ui/ProductAttributeFilters';
 
 const PAGE_SIZE = 12;
+
+type SavedStorefrontFilters = {
+  searchDraft?: string;
+  search?: string;
+  categoryID?: string;
+  categoryParentID?: string | null;
+  categoryPath?: CategoryPathItem[];
+  priceFromDraft?: string;
+  priceToDraft?: string;
+  priceFrom?: string;
+  priceTo?: string;
+  attributeFilterValues?: Record<string, string>;
+  page?: number;
+};
+
+function loadStorefrontFilters(storeSlug: string): SavedStorefrontFilters {
+  try {
+    return JSON.parse(
+      sessionStorage.getItem(`tradeon:storefront-filters:${storeSlug}`) ?? '{}'
+    );
+  } catch {
+    return {};
+  }
+}
 
 export function StorefrontPage() {
   const navigate = useNavigate();
   const { storeSlug = '' } = useParams();
-  const [searchDraft, setSearchDraft] = useState('');
-  const [search, setSearch] = useState('');
-  const [categoryID, setCategoryID] = useState('');
-  const [categoryParentID, setCategoryParentID] = useState<string | null>(null);
-  const [categoryPath, setCategoryPath] = useState<CategoryPathItem[]>([]);
-  const [priceFromDraft, setPriceFromDraft] = useState('');
-  const [priceToDraft, setPriceToDraft] = useState('');
-  const [priceFrom, setPriceFrom] = useState('');
-  const [priceTo, setPriceTo] = useState('');
+  const savedFilters = useMemo(() => loadStorefrontFilters(storeSlug), [storeSlug]);
+  const [searchDraft, setSearchDraft] = useState(savedFilters.searchDraft ?? '');
+  const [search, setSearch] = useState(savedFilters.search ?? '');
+  const [categoryID, setCategoryID] = useState(savedFilters.categoryID ?? '');
+  const [categoryParentID, setCategoryParentID] = useState<string | null>(
+    savedFilters.categoryParentID ?? null
+  );
+  const [categoryPath, setCategoryPath] = useState<CategoryPathItem[]>(
+    savedFilters.categoryPath ?? []
+  );
+  const [priceFromDraft, setPriceFromDraft] = useState(savedFilters.priceFromDraft ?? '');
+  const [priceToDraft, setPriceToDraft] = useState(savedFilters.priceToDraft ?? '');
+  const [priceFrom, setPriceFrom] = useState(savedFilters.priceFrom ?? '');
+  const [priceTo, setPriceTo] = useState(savedFilters.priceTo ?? '');
   const [priceError, setPriceError] = useState('');
-  const [page, setPage] = useState(1);
+  const [attributeFilterValues, setAttributeFilterValues] = useState<Record<string, string>>(
+    savedFilters.attributeFilterValues ?? {}
+  );
+  const [page, setPage] = useState(savedFilters.page ?? 1);
 
   const storeQuery = useQuery({
     queryKey: ['public-store', storeSlug],
@@ -68,8 +104,53 @@ export function StorefrontPage() {
     enabled: Boolean(store?.id && isAvailable),
   });
 
+  const attributeFiltersQuery = useQuery({
+    queryKey: ['public-product-attribute-filters', store?.id, categoryID],
+    queryFn: async () => {
+      const data = await productAttributesApi.list(store?.id ?? '');
+      const attributes = data.product_attributes.filter(
+        (attribute) =>
+          attribute.is_filter &&
+          (!attribute.category_id ||
+            (Boolean(categoryID) && attribute.category_id === categoryID))
+      );
+      const optionEntries = await Promise.all(
+        attributes
+          .filter((attribute) => attribute.type === 'select')
+          .map(async (attribute) => [
+            attribute.id,
+            await productAttributesApi.listOptions(attribute.id),
+          ] as const)
+      );
+      return {
+        attributes,
+        optionsByAttribute: Object.fromEntries(optionEntries),
+      };
+    },
+    enabled: Boolean(store?.id && isAvailable),
+  });
+
+  useEffect(() => {
+    const availableIDs = new Set(
+      (attributeFiltersQuery.data?.attributes ?? []).map((attribute) => attribute.id)
+    );
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAttributeFilterValues((current) =>
+      Object.fromEntries(Object.entries(current).filter(([id]) => availableIDs.has(id)))
+    );
+  }, [attributeFiltersQuery.data]);
+
   const productsQuery = useQuery({
-    queryKey: ['public-store-products', store?.id, search, categoryID, priceFrom, priceTo, page],
+    queryKey: [
+      'public-store-products',
+      store?.id,
+      search,
+      categoryID,
+      priceFrom,
+      priceTo,
+      attributeFilterValues,
+      page,
+    ],
     queryFn: () =>
       productsApi.getProducts({
         store_id: store?.id,
@@ -80,6 +161,9 @@ export function StorefrontPage() {
         price_to: priceTo ? Number(priceTo) : undefined,
         limit: PAGE_SIZE,
         offset: (page - 1) * PAGE_SIZE,
+        attribute_filters: Object.fromEntries(
+          Object.entries(attributeFilterValues).filter(([, value]) => value !== '')
+        ),
       }),
     enabled: Boolean(store?.id && isAvailable),
     placeholderData: keepPreviousData,
@@ -127,6 +211,39 @@ export function StorefrontPage() {
     return () => window.clearTimeout(timeoutID);
   }, [priceFromDraft, priceToDraft]);
 
+  useEffect(() => {
+    if (!storeSlug) return;
+    sessionStorage.setItem(
+      `tradeon:storefront-filters:${storeSlug}`,
+      JSON.stringify({
+        searchDraft,
+        search,
+        categoryID,
+        categoryParentID,
+        categoryPath,
+        priceFromDraft,
+        priceToDraft,
+        priceFrom,
+        priceTo,
+        attributeFilterValues,
+        page,
+      } satisfies SavedStorefrontFilters)
+    );
+  }, [
+    storeSlug,
+    searchDraft,
+    search,
+    categoryID,
+    categoryParentID,
+    categoryPath,
+    priceFromDraft,
+    priceToDraft,
+    priceFrom,
+    priceTo,
+    attributeFilterValues,
+    page,
+  ]);
+
   const resetFilters = () => {
     setSearchDraft('');
     setSearch('');
@@ -138,6 +255,7 @@ export function StorefrontPage() {
     setPriceFrom('');
     setPriceTo('');
     setPriceError('');
+    setAttributeFilterValues({});
     setPage(1);
   };
 
@@ -323,6 +441,19 @@ export function StorefrontPage() {
                       }}
                     />
                   </Box>
+
+                  <ProductAttributeFilters
+                    attributes={attributeFiltersQuery.data?.attributes ?? []}
+                    optionsByAttribute={attributeFiltersQuery.data?.optionsByAttribute ?? {}}
+                    values={attributeFilterValues}
+                    onChange={(attributeID, value) => {
+                      setAttributeFilterValues((current) => ({
+                        ...current,
+                        [attributeID]: value,
+                      }));
+                      setPage(1);
+                    }}
+                  />
                 </Box>
 
                 {(categoryPath.length > 1 ||
@@ -330,7 +461,8 @@ export function StorefrontPage() {
                   search ||
                   categoryID ||
                   priceFrom ||
-                  priceTo) && (
+                  priceTo ||
+                  Object.values(attributeFilterValues).some(Boolean)) && (
                   <Stack
                     direction={{ xs: 'column', sm: 'row' }}
                     spacing={1}
@@ -352,7 +484,11 @@ export function StorefrontPage() {
                         </Typography>
                       )}
                     </Stack>
-                    {(search || categoryID || priceFrom || priceTo) && (
+                    {(search ||
+                      categoryID ||
+                      priceFrom ||
+                      priceTo ||
+                      Object.values(attributeFilterValues).some(Boolean)) && (
                       <Button
                         size="small"
                         startIcon={<RestartAltOutlinedIcon />}
@@ -409,6 +545,55 @@ export function StorefrontPage() {
                 </Stack>
               )}
             </Box>
+            {store.address && isTwoGisUrl(store.address) && (
+              <Paper
+                component="section"
+                variant="outlined"
+                aria-labelledby="store-location-title"
+                sx={{ p: { xs: 2.5, sm: 3 } }}
+              >
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={2}
+                  sx={{ alignItems: { sm: 'center' }, justifyContent: 'space-between' }}
+                >
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                    <Box
+                      sx={{
+                        width: 44,
+                        height: 44,
+                        flexShrink: 0,
+                        display: 'grid',
+                        placeItems: 'center',
+                        borderRadius: 2,
+                        bgcolor: 'secondary.main',
+                      }}
+                    >
+                      <LocationOnOutlinedIcon />
+                    </Box>
+                    <Box>
+                      <Typography id="store-location-title" variant="h3">
+                        Где находится магазин
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
+                        Посмотрите адрес и постройте маршрут в 2ГИС
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <Button
+                    component="a"
+                    href={store.address}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="contained"
+                    endIcon={<OpenInNewOutlinedIcon />}
+                    sx={{ flexShrink: 0 }}
+                  >
+                    Открыть в 2ГИС
+                  </Button>
+                </Stack>
+              </Paper>
+            )}
           </Stack>
         </Container>
       </Box>
@@ -486,7 +671,19 @@ export function StorefrontPage() {
                     <LocationOnOutlinedIcon
                       sx={{ mt: 0.15, fontSize: 19, color: 'text.secondary' }}
                     />
-                    <Typography>{store.address}</Typography>
+                    {isTwoGisUrl(store.address) ? (
+                      <Typography
+                        component="a"
+                        href={store.address}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{ color: 'inherit' }}
+                      >
+                        Посмотреть адрес в 2ГИС
+                      </Typography>
+                    ) : (
+                      <Typography>{store.address}</Typography>
+                    )}
                   </Stack>
                 )}
               </Stack>

@@ -9,6 +9,7 @@ import { productsApi } from '../../features/products/api/productsApi';
 import { ProductDetails } from '../../features/products/ui/ProductDetails';
 import { storesApi } from '../../features/stores/api/storesApi';
 import { parseApiError } from '../../shared/api/error';
+import { productAttributesApi } from '../../features/productAttributes/api/productAttributesApi';
 
 const getCategory = async (categoryID: string): Promise<ProductCategory> => {
   const response = await productCategoriesApi.getByID(categoryID);
@@ -27,8 +28,18 @@ export function ProductDetailsPage() {
       const store = await storesApi.getStoreBySlug(storeSlug);
       const product = await productsApi.getProductBySlug(store.id, productSlug);
       const category = product.category_id ? await getCategory(product.category_id) : null;
+      const attributeData = await productAttributesApi.getForProduct(
+        product.store_id,
+        product.category_id
+      );
 
-      return { store, product, category };
+      return {
+        store,
+        product,
+        category,
+        attributes: attributeData.attributes,
+        attributeOptions: attributeData.optionsByAttribute,
+      };
     },
   });
 

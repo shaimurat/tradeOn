@@ -55,15 +55,36 @@ WHERE
         $6::product_status IS NULL
         OR p.status = $6::product_status
     )
+    AND NOT EXISTS (
+        SELECT 1
+        FROM jsonb_each_text(COALESCE($7::text, '{}')::jsonb) filter
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM product_attribute_values pav
+            JOIN product_attributes pa ON pa.id = pav.product_attribute_id
+            WHERE pav.product_id = p.id
+              AND pa.id::text = filter.key
+              AND pa.store_id = p.store_id
+              AND pa.is_filter = TRUE
+              AND (pa.category_id IS NULL OR pa.category_id = p.category_id)
+              AND (
+                  (pa.type = 'text' AND pav.value_text = filter.value)
+                  OR (pa.type = 'number' AND pav.value_number::text = filter.value)
+                  OR (pa.type = 'bool' AND pav.value_bool::text = filter.value)
+                  OR (pa.type = 'select' AND pav.option_id::text = filter.value)
+              )
+        )
+    )
 `
 
 type CountProductsListParams struct {
-	StoreID    pgtype.UUID       `json:"store_id"`
-	Search     pgtype.Text       `json:"search"`
-	CategoryID pgtype.UUID       `json:"category_id"`
-	PriceFrom  pgtype.Int8       `json:"price_from"`
-	PriceTo    pgtype.Int8       `json:"price_to"`
-	Status     NullProductStatus `json:"status"`
+	StoreID          pgtype.UUID       `json:"store_id"`
+	Search           pgtype.Text       `json:"search"`
+	CategoryID       pgtype.UUID       `json:"category_id"`
+	PriceFrom        pgtype.Int8       `json:"price_from"`
+	PriceTo          pgtype.Int8       `json:"price_to"`
+	Status           NullProductStatus `json:"status"`
+	AttributeFilters pgtype.Text       `json:"attribute_filters"`
 }
 
 func (q *Queries) CountProductsList(ctx context.Context, arg CountProductsListParams) (int64, error) {
@@ -74,6 +95,7 @@ func (q *Queries) CountProductsList(ctx context.Context, arg CountProductsListPa
 		arg.PriceFrom,
 		arg.PriceTo,
 		arg.Status,
+		arg.AttributeFilters,
 	)
 	var column_1 int64
 	err := row.Scan(&column_1)
@@ -330,20 +352,41 @@ WHERE
         $6::product_status IS NULL
         OR p.status = $6::product_status
     )
+    AND NOT EXISTS (
+        SELECT 1
+        FROM jsonb_each_text(COALESCE($7::text, '{}')::jsonb) filter
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM product_attribute_values pav
+            JOIN product_attributes pa ON pa.id = pav.product_attribute_id
+            WHERE pav.product_id = p.id
+              AND pa.id::text = filter.key
+              AND pa.store_id = p.store_id
+              AND pa.is_filter = TRUE
+              AND (pa.category_id IS NULL OR pa.category_id = p.category_id)
+              AND (
+                  (pa.type = 'text' AND pav.value_text = filter.value)
+                  OR (pa.type = 'number' AND pav.value_number::text = filter.value)
+                  OR (pa.type = 'bool' AND pav.value_bool::text = filter.value)
+                  OR (pa.type = 'select' AND pav.option_id::text = filter.value)
+              )
+        )
+    )
 ORDER BY p.created_at DESC
-    LIMIT COALESCE($8::int, 20)
-OFFSET COALESCE($7::int, 0)
+    LIMIT COALESCE($9::int, 20)
+OFFSET COALESCE($8::int, 0)
 `
 
 type GetProductsListParams struct {
-	StoreID    pgtype.UUID       `json:"store_id"`
-	Search     pgtype.Text       `json:"search"`
-	CategoryID pgtype.UUID       `json:"category_id"`
-	PriceFrom  pgtype.Int8       `json:"price_from"`
-	PriceTo    pgtype.Int8       `json:"price_to"`
-	Status     NullProductStatus `json:"status"`
-	Offset     pgtype.Int4       `json:"offset"`
-	Limit      pgtype.Int4       `json:"limit"`
+	StoreID          pgtype.UUID       `json:"store_id"`
+	Search           pgtype.Text       `json:"search"`
+	CategoryID       pgtype.UUID       `json:"category_id"`
+	PriceFrom        pgtype.Int8       `json:"price_from"`
+	PriceTo          pgtype.Int8       `json:"price_to"`
+	Status           NullProductStatus `json:"status"`
+	AttributeFilters pgtype.Text       `json:"attribute_filters"`
+	Offset           pgtype.Int4       `json:"offset"`
+	Limit            pgtype.Int4       `json:"limit"`
 }
 
 func (q *Queries) GetProductsList(ctx context.Context, arg GetProductsListParams) ([]Product, error) {
@@ -354,6 +397,7 @@ func (q *Queries) GetProductsList(ctx context.Context, arg GetProductsListParams
 		arg.PriceFrom,
 		arg.PriceTo,
 		arg.Status,
+		arg.AttributeFilters,
 		arg.Offset,
 		arg.Limit,
 	)
