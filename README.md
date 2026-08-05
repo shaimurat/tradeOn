@@ -218,23 +218,7 @@ cd frontend
 npm run build
 ```
 
-## Screenshots
 
-Add screenshots of the main application pages here:
-
-```markdown
-![Dashboard](docs/screenshots/dashboard.png)
-![Products](docs/screenshots/products.png)
-![Store](docs/screenshots/store.png)
-```
-
-Recommended screenshots:
-
-- dashboard;
-- store list;
-- product catalogue;
-- product creation form;
-- Swagger UI.
 
 ## My Role
 
